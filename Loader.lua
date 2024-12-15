@@ -18,12 +18,12 @@ local selectedChar = ""
 if not _G.killWorkChars then
 	_G.killWorkChars = {"Hunter", "Cyborg", "Ninja", "Esper", "Blade"}
 	_G.killWhiteList = true
-	_G.killactivated = true
+	_G.killactivated = false
 	_G.killSafeSelf = true
 	_G.killSafeProp = 15
 	_G.killChargeUp = false 
 	_G.killKilling = false
-	
+
 	_G.adcActivated = false -- anti death counter
 	_G.isDeath = false -- check if player anim == 11343250001 (death counter anim)
 	_G.adcQuotes = 1 -- wait time (1 = no wait; 2 = 4 seconds fakeout; 3 = 8 seconds long fakeout)
@@ -544,27 +544,27 @@ RunService.Heartbeat:Connect(function()
 			localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(0, 200, 0)
 		end
 	end
-	
+
 	if localPlayer.Character then
 		local humanoid = localPlayer.Character:FindFirstChildOfClass("Humanoid")
 		local animator = humanoid:WaitForChild("Animator")
 		if humanoid and animator and (humanoid.Health ~= 0 and humanoid.Health ~= 1) then
 			for _, animation in pairs(humanoid:GetPlayingAnimationTracks()) do
 				if animation then
-					print(humanoid.Name, animation, animation.Animation.AnimationId)
+					print(humanoid.Name, animation, animation.AnimationId)
 				end
 			end
-			
+
 			for _, animation in pairs(animator:GetPlayingAnimationTracks()) do
 				if animation then
-					print(animator.Name, animation.Animation.AnimationId)
+					print(animator.Name, animation, animation.AnimationId)
 				end
 			end
 		else
 			warn(humanoid, animator, humanoid.Health, (humanoid.Health ~= 0 and humanoid.Health ~= 1))
 		end
 	end
-	
+
 	if localPlayer.Character then
 		if _G.isDeath == true then
 			warn("Death Countered LOL bozo kid")
