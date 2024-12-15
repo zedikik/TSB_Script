@@ -118,7 +118,7 @@ local killStealPropSlider = Tab2:CreateSlider({
 	Flag = "KillStealProp", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
 	Callback = function(Value)
 		print(Value)
-		_G._G.killStealProp = Value
+		_G.killStealProp = Value
 	end,
 })
 
@@ -566,8 +566,9 @@ local function antiDeathCounter()
 	end
 
 	repeat
-		localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(0, -496, 0)*CFrame.Angles(90,0,0)
-	until task.wait(0.35)
+		_G.adcNeedTp = true
+	until task.wait(2)
+	_G.adcNeedTp = false
 	print("antis")
 
 	localPlayer.Character.HumanoidRootPart.CFrame = oldCFrame
@@ -579,6 +580,12 @@ end
 
 
 RunService.Heartbeat:Connect(function()
+	if localPlayer.Character then
+		if _G.adcNeedTp == true then
+			localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(0, -496, 0)
+		end
+	end
+	
 	if localPlayer.Character then
 		local has = false
 		for i, v in pairs(_G.killWorkChars) do
