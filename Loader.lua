@@ -583,10 +583,10 @@ end
 RunService.Heartbeat:Connect(function()
 	if localPlayer.Character then
 		if _G.adcNeedTp == true then
-			localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(0, -496, 0)
+			localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -496, 1)
 		end
 	end
-	
+
 	if localPlayer.Character then
 		local has = false
 		for i, v in pairs(_G.killWorkChars) do
