@@ -26,6 +26,7 @@ if not _G.killWorkChars then
 	_G.killKilling = false
 
 	_G.adcActivated = false -- anti death counter
+	_G.adcNeedTp = false
 	_G.adcWorking = false
 	_G.isDeath = false -- check if player anim == 11343250001 (death counter anim)
 	_G.adcQuotes = 1 -- wait time (1 = no wait; 2 = 4 seconds fakeout; 3 = 8 seconds long fakeout)
