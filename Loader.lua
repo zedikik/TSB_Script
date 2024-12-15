@@ -613,8 +613,8 @@ RunService.Heartbeat:Connect(function()
 
 	if localPlayer.Character then
 		local humanoid = localPlayer.Character:FindFirstChildOfClass("Humanoid")
-		local animator = humanoid:WaitForChild("Animator")
-		if humanoid and animator and (humanoid.Health ~= 0 and humanoid.Health ~= 1) then
+		if humanoid and (humanoid.Health ~= 0 and humanoid.Health ~= 1) then
+			local animator = humanoid:WaitForChild("Animator")
 			for _, animation in pairs(humanoid:GetPlayingAnimationTracks()) do
 				if animation then
 					local animationId = animation.Animation.AnimationId
@@ -629,23 +629,24 @@ RunService.Heartbeat:Connect(function()
 					end
 				end
 			end
-
-			for _, animation in pairs(animator:GetPlayingAnimationTracks()) do
-				if animation then
-					local animationId = animation.Animation.AnimationId
-					local split = string.split(tostring(animationId), "rbxassetid://")
-					if split and split[2] then
-						if split[2] == "11343250001" then
-							_G.isDeath = true
-							break
-						else
-							_G.isDeath = false
+			if animator then
+				for _, animation in pairs(animator:GetPlayingAnimationTracks()) do
+					if animation then
+						local animationId = animation.Animation.AnimationId
+						local split = string.split(tostring(animationId), "rbxassetid://")
+						if split and split[2] then
+							if split[2] == "11343250001" then
+								_G.isDeath = true
+								break
+							else
+								_G.isDeath = false
+							end
 						end
 					end
 				end
 			end
 		else
-			warn(humanoid, animator, humanoid.Health, (humanoid.Health ~= 0 and humanoid.Health ~= 1))
+			warn(humanoid, humanoid.Health, (humanoid.Health ~= 0 and humanoid.Health ~= 1))
 		end
 	end
 
