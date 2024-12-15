@@ -557,7 +557,7 @@ RunService.Heartbeat:Connect(function()
 			
 			for _, animation in pairs(animator:GetPlayingAnimationTracks()) do
 				if animation then
-					print(animator.Name, animation, animation.AnimationId)
+					print(animator.Name, animation)
 				end
 			end
 		else
