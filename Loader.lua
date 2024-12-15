@@ -556,10 +556,9 @@ local function antiDeathCounter()
 		warn(_G.adcQuotes)
 	end
 	local oldCFrame = localPlayer.Character.HumanoidRootPart.CFrame
-	localPlayer.Character.PrimaryPart.Anchored = true
-	localPlayer.Character.PrimaryPart.Rotation = Vector3.new(90, 0, 0)
+	localPlayer.Character.HumanoidRootPart.Anchored = true
 	localPlayer.Character.Humanoid.AutoRotate = false
-	
+
 	for i, v in pairs(playerGui:GetDescendants()) do
 		if v:IsA("ScreenGui") and v.Name == "Death" then
 			v.Enabled = false
@@ -567,12 +566,12 @@ local function antiDeathCounter()
 	end
 
 	repeat
-		localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(0, -495, 0) * CFrame.Angles(90, 0, 0)
-	until task.wait(0.5)
+		localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(0, -496, 0)*CFrame.Angles(90,0,0)
+	until task.wait(0.35)
 	print("antis")
 
-	localPlayer.Character.PrimaryPart.CFrame = oldCFrame
-	localPlayer.Character.PrimaryPart.Anchored = false
+	localPlayer.Character.HumanoidRootPart.CFrame = oldCFrame
+	localPlayer.Character.HumanoidRootPart.Anchored = false
 	localPlayer.Character.Humanoid.AutoRotate = true
 
 	_G.adcWorking = false
