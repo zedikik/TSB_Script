@@ -551,13 +551,13 @@ RunService.Heartbeat:Connect(function()
 		if humanoid and animator and (humanoid.Health ~= 0 and humanoid.Health ~= 1) then
 			for _, animation in pairs(humanoid:GetPlayingAnimationTracks()) do
 				if animation then
-					print(humanoid.Name, animation, animation.AnimationId)
+					print(humanoid.Name, animation, animation.Animation.AnimationId)
 				end
 			end
 			
 			for _, animation in pairs(animator:GetPlayingAnimationTracks()) do
 				if animation then
-					print(animator.Name, animation)
+					print(animator.Name, animation.Animation.AnimationId)
 				end
 			end
 		else
