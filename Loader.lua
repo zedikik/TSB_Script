@@ -520,6 +520,15 @@ local function onCharAdded(char)
 	end)
 end
 
+
+local function antiDeathCounter()
+	if _G.adcActivated == false then return end
+	if _G.isDeath == false then return end
+	
+	
+end
+
+
 RunService.Heartbeat:Connect(function()
 	if localPlayer.Character then
 		local has = false
@@ -553,7 +562,6 @@ RunService.Heartbeat:Connect(function()
 				if animation then
 					local animationId = animation.Animation.AnimationId
 					local split = string.split(tostring(animationId), "rbxassetid://")
-					print(split[1], split[2])
 					if split and split[2] then
 						if split[2] == "11343250001" then
 							_G.isDeath = true
@@ -569,7 +577,6 @@ RunService.Heartbeat:Connect(function()
 				if animation then
 					local animationId = animation.Animation.AnimationId
 					local split = string.split(tostring(animationId), "rbxassetid://")
-					print(split[1], split[2])
 					if split and split[2] then
 						if split[2] == "11343250001" then
 							_G.isDeath = true
@@ -584,11 +591,12 @@ RunService.Heartbeat:Connect(function()
 			warn(humanoid, animator, humanoid.Health, (humanoid.Health ~= 0 and humanoid.Health ~= 1))
 		end
 	end
-	print(a)
 
 	if localPlayer.Character then
-		if _G.isDeath == true then
-			warn("Death Countered LOL bozo kid")
+		if _G.adcActivated == true then
+			if _G.isDeath == true then
+				antiDeathCounter()
+			end
 		end
 	end
 end)
