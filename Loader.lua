@@ -551,19 +551,40 @@ RunService.Heartbeat:Connect(function()
 		if humanoid and animator and (humanoid.Health ~= 0 and humanoid.Health ~= 1) then
 			for _, animation in pairs(humanoid:GetPlayingAnimationTracks()) do
 				if animation then
-					print(humanoid.Name, animation, animation.AnimationId)
+					local animationId = animation.Animation.AnimationId
+					local split = string.split(tostring(animationId), "rbxassetid://")
+					print(split[1], split[2])
+					if split and split[2] then
+						if split[2] == "11343250001" then
+							_G.isDeath = true
+							break
+						else
+							_G.isDeath = false
+						end
+					end
 				end
 			end
 
 			for _, animation in pairs(animator:GetPlayingAnimationTracks()) do
 				if animation then
-					print(animator.Name, animation, animation.AnimationId)
+					local animationId = animation.Animation.AnimationId
+					local split = string.split(tostring(animationId), "rbxassetid://")
+					print(split[1], split[2])
+					if split and split[2] then
+						if split[2] == "11343250001" then
+							_G.isDeath = true
+							break
+						else
+							_G.isDeath = false
+						end
+					end
 				end
 			end
 		else
 			warn(humanoid, animator, humanoid.Health, (humanoid.Health ~= 0 and humanoid.Health ~= 1))
 		end
 	end
+	print(a)
 
 	if localPlayer.Character then
 		if _G.isDeath == true then
