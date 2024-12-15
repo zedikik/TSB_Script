@@ -350,7 +350,9 @@ local function onCharAdded(char)
 
 						localPlayer.Character.Communicate:FireServer({
 							["Goal"] = "Console Move",
-							["Tool"] = localPlayer.Backpack:WaitForChild("Crushing Pull")
+							["CrushingPull"] = char,
+							["Tool"] = localPlayer.Backpack:WaitForChild("Crushing Pull"),
+							["ToolName"] = "Crushing Pull"
 						})
 
 						task.wait(2)
@@ -555,3 +557,10 @@ for _, plr in Players:GetPlayers() do
 	end
 end
 Players.PlayerAdded:Connect(onPlrAdded)
+
+Rayfield:Notify({
+	Title = "Tsb Script",
+	Content = "Loaded",
+	Duration = 6.5,
+	Image = 4483362458,
+})
