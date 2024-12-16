@@ -28,9 +28,12 @@ if not _G.killWorkChars then
 
 	_G.adcActivated = false -- anti death counter
 	_G.adcNeedTp = false
+	_G.adcNeedCustomTp = false
+	_G.adcCusomCFrame = CFrame.new(0,0,0)
 	_G.adcWorking = false
 	_G.isDeath = false -- check if player anim == 11343250001 (death counter anim)
-	_G.adcQuotes = 1 -- wait time (1 = no wait; 2 = 4 seconds fakeout; 3 = 8 seconds long fakeout)
+	_G.adcQuotes = 1 -- 1 is void, 2 is punish
+	_G.punishLoc = 1 -- 1 is Death Counter room, 2 is Atomic room, 3 is Upper Baseplate, 4 is Lower Baseplate
 
 	_G.voidKillActivated = false -- auto void kill activated
 	_G.voidNeedTp = false
@@ -38,6 +41,15 @@ if not _G.killWorkChars then
 	_G.voidKillQuotes = 2 -- wait time (1 = default time; 2 = smart wait)
 
 	_G.hitboxColor = Color3.new(255, 0, 0)
+end
+
+if not workspace:FindFirstChild("VoidPlate") then
+	local voidPlate = Instance.new("Part", workspace)
+	voidPlate.Name = "VoidPlate"
+	voidPlate.Anchored = true
+	voidPlate.Material = Enum.Material.ForceField
+	voidPlate.Size = Vector3.new(1027, 1, 770)
+	voidPlate.CFrame = CFrame.new(0, -500, 0)
 end
 
 local Window = Rayfield:CreateWindow({
@@ -142,6 +154,67 @@ local function setupUI()
 			Callback = function(Value)
 				print(Value)
 				_G.adcActivated = Value
+			end,
+		})
+		
+		local deathCounterDropdown = Tab3:CreateDropdown({
+			Name = "Anti Death Counter Quotes",
+			Options = {"Void Kill ur Enemy (Bypass Death Counter)", "Punish ur Enemy (teleport him to selected place)"},
+			CurrentOption = {"Void Kill ur Enemy (Bypass Death Counter)"},
+			MultipleOptions = false,
+			Flag = "deathDropdown", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Opt)
+				local option = nil
+				for i, v in Opt do
+					if not option or option == nil then
+						option = v
+					end
+				end
+				if option and option ~= nil then
+					if string.match(option, "Void") then
+						_G.adcQuotes = 1
+					else
+						_G.adcQuotes = 2
+					end
+				else
+					warn(option)
+				end
+			end,
+		})
+		
+		local deathPunishLocDropdown = Tab3:CreateDropdown({
+			Name = "Anti Death Counter Punish Location",
+			Options = {"Death Counter Room", "Atomic Slash Room", "Upper Baseplate", "Lower Baseplate"},
+			CurrentOption = {"Death Counter Room"},
+			MultipleOptions = false,
+			Flag = "deathPunishLocDropdown", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Opt)
+				local option = nil
+				for i, v in Opt do
+					if not option or option == nil then
+						option = v
+					end
+				end
+				if option and option ~= nil then
+					if string.match(option, "Death") then
+						_G.punishLoc = 1
+						_G.adcCusomCFrame = CFrame.new(-66, 30, 20356)
+						
+					elseif string.match(option, "Atomic") then
+						_G.punishLoc = 2
+						_G.adcCusomCFrame = CFrame.new(1050, 140, 23010)
+						
+					elseif string.match(option, "Upper") then
+						_G.punishLoc = 3
+						_G.adcCusomCFrame = CFrame.new(1060, 405, 22887)
+						
+					elseif string.match(option, "Lower") then
+						_G.punishLoc = 4
+						_G.adcCusomCFrame = CFrame.new(1060, 20, 22887)
+					end
+				else
+					warn(option)
+				end
 			end,
 		})
 
@@ -688,18 +761,6 @@ local function antiDeathCounter()
 	if _G.adcWorking == true then return end
 	_G.adcWorking = true
 
-	if _G.adcQuotes == 1 then
-		task.wait(0)
-
-	elseif _G.adcQuotes == 2 then
-		task.wait(4)
-
-	elseif _G.adcQuotes == 3 then
-		task.wait(8)
-
-	else
-		warn(_G.adcQuotes)
-	end
 	local oldCFrame = localPlayer.Character.HumanoidRootPart.CFrame
 	localPlayer.Character.Humanoid.AutoRotate = false
 
@@ -708,16 +769,33 @@ local function antiDeathCounter()
 			v.Enabled = false
 		end
 	end
+	
+	if _G.adcQuotes == 1 then
+		repeat
+			_G.adcNeedTp = true
+		until task.wait(1)
+		_G.adcNeedTp = false
+		print("antis")
 
-	repeat
-		_G.adcNeedTp = true
-	until task.wait(1)
-	_G.adcNeedTp = false
-	print("antis")
-
-	localPlayer.Character.HumanoidRootPart.CFrame = oldCFrame
-	localPlayer.Character.Humanoid.AutoRotate = true
-	camera.CameraType = Enum.CameraType.Custom
+		if localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") then
+			localPlayer.Character.HumanoidRootPart.CFrame = oldCFrame
+			localPlayer.Character.Humanoid.AutoRotate = true
+		end
+		camera.CameraType = Enum.CameraType.Custom
+	else
+		if _G.punishLoc == 1 then
+			
+			
+		elseif _G.punishLoc == 2 then
+			
+		elseif _G.punishLoc == 3 then
+			
+		elseif _G.punishLoc == 4 then
+			
+		else
+			warn(_G.punishLoc)
+		end
+	end
 
 	_G.adcWorking = false
 end
@@ -769,6 +847,14 @@ RunService.Heartbeat:Connect(function()
 		if _G.adcNeedTp == true then
 			localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -490, 1)
 
+			if _G.killActivated == true then
+				_G.killActivated = false
+			end
+		end
+		
+		if _G.adcNeedCustomTp == true then
+			localPlayer.Character.HumanoidRootPart.CFrame = _G.adcCusomCFrame
+			
 			if _G.killActivated == true then
 				_G.killActivated = false
 			end
