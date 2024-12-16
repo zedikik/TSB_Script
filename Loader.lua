@@ -644,6 +644,7 @@ local function voidKill()
 	task.wait(3)
 
 	_G.voidNeedTp = false
+	_G.voidKilling = false
 
 	localPlayer.Character.HumanoidRootPart.CFrame = oldCFrame
 end
