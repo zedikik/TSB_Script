@@ -17,8 +17,8 @@ local selectedChar = ""
 
 if not _G.killWorkChars then
 	_G.killWorkChars = {"Hunter", "Cyborg", "Ninja", "Esper", "Blade"}
-	_G.killWhiteList = true
 	_G.killactivated = false
+	_G.killWhiteList = true
 	_G.killSafeSelf = true
 	_G.killSafeProp = 15
 	_G.killStealProp = 15
@@ -30,6 +30,10 @@ if not _G.killWorkChars then
 	_G.adcWorking = false
 	_G.isDeath = false -- check if player anim == 11343250001 (death counter anim)
 	_G.adcQuotes = 1 -- wait time (1 = no wait; 2 = 4 seconds fakeout; 3 = 8 seconds long fakeout)
+	
+	_G.voidKillActivated = false -- auto void kill activated
+	_G.voidKilling = false 
+	_G.voidKillQuotes = 1 -- wait time (1 = no wait; 2 = wait anim end)
 end
 
 local Window = Rayfield:CreateWindow({
@@ -64,7 +68,30 @@ local Tab = Window:CreateTab("Main", "rewind")
 local Tab2 = Window:CreateTab("Attacks", "rewind")
 
 local Section = Tab:CreateSection("Main")
-local Section2 = Tab2:CreateSection("Kills Farm (afk kill stealer)")
+
+local Section2 = Tab2:CreateSection("Exploits")
+
+local antiDeathCounterToggle = Tab2:CreateToggle({
+	Name = "Anti Death Counter",
+	CurrentValue = false,
+	Flag = "ADCToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+	Callback = function(Value)
+		print(Value)
+		_G.adcActivated = Value
+	end,
+})
+
+local autoVoidToggle = Tab2:CreateToggle({
+	Name = "Auto Void Kill",
+	CurrentValue = false,
+	Flag = "AVToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+	Callback = function(Value)
+		print(Value)
+		_G.voidKillActivated = Value
+	end,
+})
+
+local Section3 = Tab2:CreateSection("Kills Farm (afk kill stealer)")
 
 
 local killToggle = Tab2:CreateToggle({
@@ -120,19 +147,6 @@ local killStealPropSlider = Tab2:CreateSlider({
 	Callback = function(Value)
 		print(Value)
 		_G.killStealProp = Value
-	end,
-})
-
-
-local Section3 = Tab2:CreateSection("Functions")
-
-local antiDeathCounterToggle = Tab2:CreateToggle({
-	Name = "Anti Death Counter",
-	CurrentValue = false,
-	Flag = "ADCToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-	Callback = function(Value)
-		print(Value)
-		_G.adcActivated = Value
 	end,
 })
 
@@ -579,14 +593,81 @@ local function antiDeathCounter()
 	_G.adcWorking = false
 end
 
+local function getPlayingAnim(animId)
+	if not animId then return end
+	if type(animId) ~= "string" then animId = tostring(animId) end
+	
+	if localPlayer.Character then
+		local humanoid = localPlayer.Character:FindFirstChildOfClass("Humanoid")
+		if humanoid and (humanoid.Health ~= 0 and humanoid.Health ~= 1) then
+			local animator = humanoid:WaitForChild("Animator")
+			for _, animation in pairs(humanoid:GetPlayingAnimationTracks()) do
+				if animation then
+					local animationId = animation.Animation.AnimationId
+					local split = string.split(tostring(animationId), "rbxassetid://")
+					if split and split[2] then
+						if split[2] == animId then -- 11343250001
+							return true
+						end
+					end
+				end
+			end
+			if animator then
+				for _, animation in pairs(animator:GetPlayingAnimationTracks()) do
+					if animation then
+						local animationId = animation.Animation.AnimationId
+						local split = string.split(tostring(animationId), "rbxassetid://")
+						if split and split[2] then
+							if split[2] == animId then
+								return true
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+	
+	return false
+end
+
 
 RunService.Heartbeat:Connect(function()
 	if localPlayer.Character then
 		if _G.adcNeedTp == true then
 			localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -496, 1)
+			
+			if _G.killActivated == true then
+				_G.killActivated = false
+				killToggle:Set(false)
+			end
 		end
 	end
 
+	if localPlayer.Character then
+		local isDeathCountered = getPlayingAnim(11343250001)
+		_G.isDeath = isDeathCountered
+		
+		local voidAnims = {"12273188754", "12309835105"} -- rbxassetid://14516273501
+		
+		local isAnim
+		for i, v in voidAnims do
+			isAnim = getPlayingAnim(v)
+			if isAnim == true then
+				break
+			end
+		end
+		print(isAnim, "Flow anim") -- rbxassetid://12273188754, 
+	end
+	
+	if localPlayer.Character then
+		if _G.adcActivated == true then
+			if _G.isDeath == true then
+				antiDeathCounter()
+			end
+		end
+	end
+	
 	if localPlayer.Character then
 		local has = false
 		for i, v in pairs(_G.killWorkChars) do
@@ -608,53 +689,6 @@ RunService.Heartbeat:Connect(function()
 
 		if _G.killActivated == true and killWorking == true and _G.killKilling == false and localPlayer.Character:FindFirstChild("HumanoidRootPart") then
 			localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(0, 200, 0)
-		end
-	end
-
-	if localPlayer.Character then
-		local humanoid = localPlayer.Character:FindFirstChildOfClass("Humanoid")
-		if humanoid and (humanoid.Health ~= 0 and humanoid.Health ~= 1) then
-			local animator = humanoid:WaitForChild("Animator")
-			for _, animation in pairs(humanoid:GetPlayingAnimationTracks()) do
-				if animation then
-					local animationId = animation.Animation.AnimationId
-					local split = string.split(tostring(animationId), "rbxassetid://")
-					if split and split[2] then
-						if split[2] == "11343250001" then
-							_G.isDeath = true
-							break
-						else
-							_G.isDeath = false
-						end
-					end
-				end
-			end
-			if animator then
-				for _, animation in pairs(animator:GetPlayingAnimationTracks()) do
-					if animation then
-						local animationId = animation.Animation.AnimationId
-						local split = string.split(tostring(animationId), "rbxassetid://")
-						if split and split[2] then
-							if split[2] == "11343250001" then
-								_G.isDeath = true
-								break
-							else
-								_G.isDeath = false
-							end
-						end
-					end
-				end
-			end
-		else
-			warn(humanoid, humanoid.Health, (humanoid.Health ~= 0 and humanoid.Health ~= 1))
-		end
-	end
-
-	if localPlayer.Character then
-		if _G.adcActivated == true then
-			if _G.isDeath == true then
-				antiDeathCounter()
-			end
 		end
 	end
 end)
