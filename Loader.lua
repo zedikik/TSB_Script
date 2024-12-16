@@ -652,7 +652,7 @@ end
 RunService.Heartbeat:Connect(function()
 	if localPlayer.Character then
 		if _G.adcNeedTp == true then
-			localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -496, 1)
+			localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -100, 1)
 
 			if _G.killActivated == true then
 				_G.killActivated = false
