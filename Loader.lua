@@ -34,7 +34,7 @@ if not _G.killWorkChars then
 	_G.voidKillActivated = false -- auto void kill activated
 	_G.voidNeedTp = false
 	_G.voidKilling = false 
-	_G.voidKillQuotes = 1 -- wait time (1 = default time; 2 = smart wait)
+	_G.voidKillQuotes = 2 -- wait time (1 = default time; 2 = smart wait)
 end
 
 local Window = Rayfield:CreateWindow({
@@ -82,6 +82,7 @@ local antiDeathCounterToggle = Tab2:CreateToggle({
 	end,
 })
 
+
 local autoVoidToggle = Tab2:CreateToggle({
 	Name = "Auto Void Kill",
 	CurrentValue = false,
@@ -91,6 +92,24 @@ local autoVoidToggle = Tab2:CreateToggle({
 		_G.voidKillActivated = Value
 	end,
 })
+
+local voidDropdown = Tab:CreateDropdown({
+	Name = "Void Kill Quotes",
+	Options = {"1 (Default Wait Time)", "2 (Smart Wait Time)"},
+	CurrentOption = {"2 (Smart Wait Time)"},
+	MultipleOptions = false,
+	Flag = "voidDropdown", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+	Callback = function(Option)
+		print(Option)
+		if string.match(Option, "Default") then
+			print("Def")
+			_G.voidKillQuotes = 1
+		else
+			_G.voidKillQuotes = 2
+		end
+	end,
+})
+
 
 local Section3 = Tab2:CreateSection("Kills Farm (afk kill stealer)")
 
@@ -646,15 +665,15 @@ local function voidKill()
 		if localPlayer.Character:GetAttribute("Character") == "Hunter" then
 			print("Hunter")
 			task.wait(0.25)
-			
+
 		elseif localPlayer.Character:GetAttribute("Character") == "Batter" then
 			print("Bat")
 			task.wait(0.5)
-			
+
 		elseif localPlayer.Character:GetAttribute("Character") == "Blade" then
 			print("Blade")
 			task.wait(0.3)
-			
+
 		elseif localPlayer.Character:GetAttribute("Character") == "Esper" then
 			print("Tatsu")
 			task.wait(0.25)
