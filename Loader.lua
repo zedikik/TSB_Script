@@ -32,6 +32,7 @@ if not _G.killWorkChars then
 	_G.adcQuotes = 1 -- wait time (1 = no wait; 2 = 4 seconds fakeout; 3 = 8 seconds long fakeout)
 
 	_G.voidKillActivated = false -- auto void kill activated
+	_G.voidNeedTp = false
 	_G.voidKilling = false 
 	_G.voidKillQuotes = 1 -- wait time (1 = no wait; 2 = wait anim end)
 end
@@ -157,6 +158,44 @@ local Button = Tab:CreateButton({
 		Rayfield:Destroy()
 	end,
 })
+
+local function getPlayingAnim(animId)
+	if not animId then return end
+	if type(animId) ~= "string" then animId = tostring(animId) end
+
+	if localPlayer.Character then
+		local humanoid = localPlayer.Character:FindFirstChildOfClass("Humanoid")
+		if humanoid and (humanoid.Health ~= 0 and humanoid.Health ~= 1) then
+			local animator = humanoid:WaitForChild("Animator")
+			for _, animation in pairs(humanoid:GetPlayingAnimationTracks()) do
+				if animation then
+					local animationId = animation.Animation.AnimationId
+					local split = string.split(tostring(animationId), "rbxassetid://")
+					if split and split[2] then
+						if split[2] == animId then -- 11343250001
+							return true
+						end
+					end
+				end
+			end
+			if animator then
+				for _, animation in pairs(animator:GetPlayingAnimationTracks()) do
+					if animation then
+						local animationId = animation.Animation.AnimationId
+						local split = string.split(tostring(animationId), "rbxassetid://")
+						if split and split[2] then
+							if split[2] == animId then
+								return true
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+
+	return false
+end
 
 local function onCharAdded(char)
 	char:WaitForChild("Humanoid"):GetPropertyChangedSignal("Health"):Connect(function()
@@ -571,7 +610,6 @@ local function antiDeathCounter()
 		warn(_G.adcQuotes)
 	end
 	local oldCFrame = localPlayer.Character.HumanoidRootPart.CFrame
-	localPlayer.Character.HumanoidRootPart.Anchored = true
 	localPlayer.Character.Humanoid.AutoRotate = false
 
 	for i, v in pairs(playerGui:GetDescendants()) do
@@ -587,48 +625,27 @@ local function antiDeathCounter()
 	print("antis")
 
 	localPlayer.Character.HumanoidRootPart.CFrame = oldCFrame
-	localPlayer.Character.HumanoidRootPart.Anchored = false
 	localPlayer.Character.Humanoid.AutoRotate = true
 
 	_G.adcWorking = false
 end
 
-local function getPlayingAnim(animId)
-	if not animId then return end
-	if type(animId) ~= "string" then animId = tostring(animId) end
-
-	if localPlayer.Character then
-		local humanoid = localPlayer.Character:FindFirstChildOfClass("Humanoid")
-		if humanoid and (humanoid.Health ~= 0 and humanoid.Health ~= 1) then
-			local animator = humanoid:WaitForChild("Animator")
-			for _, animation in pairs(humanoid:GetPlayingAnimationTracks()) do
-				if animation then
-					local animationId = animation.Animation.AnimationId
-					local split = string.split(tostring(animationId), "rbxassetid://")
-					if split and split[2] then
-						if split[2] == animId then -- 11343250001
-							return true
-						end
-					end
-				end
-			end
-			if animator then
-				for _, animation in pairs(animator:GetPlayingAnimationTracks()) do
-					if animation then
-						local animationId = animation.Animation.AnimationId
-						local split = string.split(tostring(animationId), "rbxassetid://")
-						if split and split[2] then
-							if split[2] == animId then
-								return true
-							end
-						end
-					end
-				end
-			end
-		end
-	end
-
-	return false
+local function voidKill()
+	if _G.voidKillActivated == false then return end
+	if _G.voidKilling == true then return end
+	if _G.isDeath == true then return end
+	
+	local oldCFrame = localPlayer.Character.HumanoidRootPart.CFrame
+	
+	_G.voidKilling = true
+	_G.voidNeedTp = true
+	print("tp")
+	
+	task.wait(3)
+	
+	_G.voidNeedTp = false
+	
+	localPlayer.Character.HumanoidRootPart.CFrame = oldCFrame
 end
 
 
@@ -642,12 +659,16 @@ RunService.Heartbeat:Connect(function()
 				killToggle:Set(false)
 			end
 		end
+		
+		if _G.voidNeedTp == true then
+			localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -495, 1)
+		end
 	end
 
 	if localPlayer.Character then
 		local isDeathCountered = getPlayingAnim(11343250001)
 		_G.isDeath = isDeathCountered
-		
+
 		if _G.voidKillActivated == true and _G.voidKilling == false then
 			local voidAnims = {"12273188754", "12309835105"} -- rbxassetid://14516273501
 
@@ -658,8 +679,8 @@ RunService.Heartbeat:Connect(function()
 					break
 				end
 			end
-			if isAnim == true then
-				print(isAnim, "Void anim") -- rbxassetid://12273188754, 
+			if _G.voidKillActivated == true and _G.voidKilling == false and isAnim == true then
+				voidKill()
 			end
 		end
 	end
