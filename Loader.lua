@@ -641,7 +641,7 @@ local function voidKill()
 	_G.voidNeedTp = true
 	print("tp")
 
-	task.wait(3)
+	task.wait(4)
 
 	_G.voidNeedTp = false
 	_G.voidKilling = false
@@ -662,7 +662,7 @@ RunService.Heartbeat:Connect(function()
 		end
 
 		if _G.voidNeedTp == true then
-			localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -200, 1)
+			localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, 205, 1)
 		end
 	end
 
@@ -680,6 +680,7 @@ RunService.Heartbeat:Connect(function()
 				end
 			end
 			if _G.voidKillActivated == true and _G.voidKilling == false and isAnim == true then
+				print("start func")
 				voidKill()
 			end
 		end
