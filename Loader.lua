@@ -3,6 +3,7 @@ local RunService = game:GetService("RunService")
 
 local localPlayer = Players.LocalPlayer
 local playerGui = localPlayer.PlayerGui
+local camera = workspace.CurrentCamera
 
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 Rayfield:Notify({
@@ -35,6 +36,8 @@ if not _G.killWorkChars then
 	_G.voidNeedTp = false
 	_G.voidKilling = false 
 	_G.voidKillQuotes = 2 -- wait time (1 = default time; 2 = smart wait)
+
+	_G.hitboxColor = Color3.new(255, 0, 0)
 end
 
 local Window = Rayfield:CreateWindow({
@@ -66,127 +69,186 @@ local Window = Rayfield:CreateWindow({
 })
 
 local Tab = Window:CreateTab("Main", "rewind")
-local Tab2 = Window:CreateTab("Attacks", "rewind")
+local Tab2 = Window:CreateTab("Visuals", "rewind")
+local Tab3 = Window:CreateTab("Attacks", "rewind")
 
 local Section = Tab:CreateSection("Main")
-
-local Section2 = Tab2:CreateSection("Exploits")
-
-local antiDeathCounterToggle = Tab2:CreateToggle({
-	Name = "Anti Death Counter",
-	CurrentValue = false,
-	Flag = "ADCToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-	Callback = function(Value)
-		print(Value)
-		_G.adcActivated = Value
-	end,
-})
+local section2 = Tab2:CreateSection("Visuals")
+local Section3 = Tab3:CreateSection("Exploits")
 
 
-local autoVoidToggle = Tab2:CreateToggle({
-	Name = "Auto Void Kill",
-	CurrentValue = false,
-	Flag = "AVToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-	Callback = function(Value)
-		print(Value)
-		_G.voidKillActivated = Value
-	end,
-})
+local function setupUI()
+	local function setupTab()
+		local Button = Tab:CreateButton({
+			Name = "Unload UI",
+			Callback = function()
+				Rayfield:Destroy()
+			end,
+		})
+	end
 
-local voidDropdown = Tab2:CreateDropdown({
-	Name = "Void Kill Quotes",
-	Options = {"1 (Default Wait Time)", "2 (Smart Wait Time)"},
-	CurrentOption = {"2 (Smart Wait Time)"},
-	MultipleOptions = false,
-	Flag = "voidDropdown", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-	Callback = function(Opt)
-		local option = nil
-		for i, v in Opt do
-			if not option or option == nil then
-				option = v
+	local function setupTab2()
+		local hitboxToggle = Tab2:CreateToggle({
+			Name = "Show Hitboxes",
+			CurrentValue = false,
+			Flag = "hitboxToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Value)
+				print(Value)
+				if Value == true then
+					for i, v in pairs(localPlayer.Character:GetChildren()) do
+						if string.match(v.Name, "Hitbox_") then
+							v.Transparency = 0
+							v.Color = _G.hitboxColor
+						end
+					end
+				else
+					for i, v in pairs(localPlayer.Character:GetChildren()) do
+						if string.match(v.Name, "Hitbox_") then
+							v.Transparency = 1
+							v.Color = Color3.fromRGB(193, 193, 193) -- default color
+						end
+					end
+				end
+			end,
+		})
+
+		local hitboxColor = Tab2:CreateColorPicker({
+			Name = "Hitbox Color",
+			Color = Color3.fromRGB(255,0,0),
+			Flag = "HitboxColor", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Value)
+				local color = nil
+				local split = string.split(tostring(Value), ", ")
+				print(Value, Color3.new(Value))
+
+				local C3 = Color3.new(0, 0, 0)
+				local r, g, b = math.round(tonumber(split[1])*255), math.round(split[2]*255), math.round(split[3]*255)
+				color = Color3.new(r,g,b)
+
+				if color then
+					_G.hitboxColor = color
+				else
+					_G.hitboxColor = Color3.fromRGB(255,0,0)
+				end
 			end
-		end
-		if option and option ~= nil then
-			if string.match(option, "Default") then
-				print("Default")
-				_G.voidKillQuotes = 1
-			else
-				print("Smart")
-				_G.voidKillQuotes = 2
-			end
-		else
-			warn(option)
-		end
-	end,
-})
+		})
+	end
+
+	local function setupTab3()
+		local antiDeathCounterToggle = Tab3:CreateToggle({
+			Name = "Anti Death Counter",
+			CurrentValue = false,
+			Flag = "ADCToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Value)
+				print(Value)
+				_G.adcActivated = Value
+			end,
+		})
 
 
-local Section3 = Tab2:CreateSection("Kills Farm (afk kill stealer)")
+		local autoVoidToggle = Tab3:CreateToggle({
+			Name = "Auto Void Kill",
+			CurrentValue = false,
+			Flag = "AVToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Value)
+				print(Value)
+				_G.voidKillActivated = Value
+			end,
+		})
+
+		local voidDropdown = Tab3:CreateDropdown({
+			Name = "Void Kill Quotes",
+			Options = {"1 (Default Wait Time)", "2 (Smart Wait Time)"},
+			CurrentOption = {"2 (Smart Wait Time)"},
+			MultipleOptions = false,
+			Flag = "voidDropdown", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Opt)
+				local option = nil
+				for i, v in Opt do
+					if not option or option == nil then
+						option = v
+					end
+				end
+				if option and option ~= nil then
+					if string.match(option, "Default") then
+						print("Default")
+						_G.voidKillQuotes = 1
+					else
+						print("Smart")
+						_G.voidKillQuotes = 2
+					end
+				else
+					warn(option)
+				end
+			end,
+		})
+
+		local Section3 = Tab3:CreateSection("Kills Farm (afk kill stealer)")
+
+		local killToggle = Tab3:CreateToggle({
+			Name = "Toggle Kill Stealer",
+			CurrentValue = false,
+			Flag = "KillToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Value)
+				print(Value)
+				_G.killActivated = Value
+			end,
+		})
+
+		local killWhiteListToggle = Tab3:CreateToggle({
+			Name = "Whitelist (do not kill ur friends)",
+			CurrentValue = true,
+			Flag = "KillWhiteList", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Value)
+				print(Value)
+				_G.killWhitelist = Value
+			end,
+		})
+
+		local killSafeSelfToggle = Tab3:CreateToggle({
+			Name = "Safe Self (Do not steal, if u has lower than Safe Prop hp)",
+			CurrentValue = true,
+			Flag = "KillSafeSelf", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Value)
+				print(Value)
+				_G.killSafeSelf = Value
+			end,
+		})
+
+		local killSafePropSlider = Tab3:CreateSlider({
+			Name = "Safe Prop",
+			Range = {0, 100},
+			Increment = 1,
+			Suffix = "Health",
+			CurrentValue = 15,
+			Flag = "KillSafeProp", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Value)
+				print(Value)
+				_G.killSafeProp = Value
+			end,
+		})
+
+		local killStealPropSlider = Tab3:CreateSlider({
+			Name = "Steal Prop",
+			Range = {1, 100},
+			Increment = 1,
+			Suffix = "Health",
+			CurrentValue = 15,
+			Flag = "KillStealProp", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Value)
+				print(Value)
+				_G.killStealProp = Value
+			end,
+		})
+	end
 
 
-local killToggle = Tab2:CreateToggle({
-	Name = "Toggle Kill Stealer",
-	CurrentValue = false,
-	Flag = "KillToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-	Callback = function(Value)
-		print(Value)
-		_G.killActivated = Value
-	end,
-})
+	setupTab()
+	setupTab2()
+	setupTab3()
+end
+setupUI()
 
-local killWhiteListToggle = Tab2:CreateToggle({
-	Name = "Whitelist (do not kill ur friends)",
-	CurrentValue = true,
-	Flag = "KillWhiteList", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-	Callback = function(Value)
-		print(Value)
-		_G.killWhitelist = Value
-	end,
-})
-
-local killSafeSelfToggle = Tab2:CreateToggle({
-	Name = "Safe Self (Do not steal, if u has lower than Safe Prop hp)",
-	CurrentValue = true,
-	Flag = "KillSafeSelf", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-	Callback = function(Value)
-		print(Value)
-		_G.killSafeSelf = Value
-	end,
-})
-
-local killSafePropSlider = Tab2:CreateSlider({
-	Name = "Safe Prop",
-	Range = {0, 100},
-	Increment = 1,
-	Suffix = "Health",
-	CurrentValue = 15,
-	Flag = "KillSafeProp", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-	Callback = function(Value)
-		print(Value)
-		_G.killSafeProp = Value
-	end,
-})
-
-local killStealPropSlider = Tab2:CreateSlider({
-	Name = "Steal Prop",
-	Range = {1, 100},
-	Increment = 1,
-	Suffix = "Health",
-	CurrentValue = 15,
-	Flag = "KillStealProp", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-	Callback = function(Value)
-		print(Value)
-		_G.killStealProp = Value
-	end,
-})
-
-
-local Button = Tab:CreateButton({
-	Name = "Unload UI",
-	Callback = function()
-		Rayfield:Destroy()
-	end,
-})
 
 local function getPlayingAnim(animId)
 	if not animId then return end
@@ -649,12 +711,13 @@ local function antiDeathCounter()
 
 	repeat
 		_G.adcNeedTp = true
-	until task.wait(2)
+	until task.wait(1)
 	_G.adcNeedTp = false
 	print("antis")
 
 	localPlayer.Character.HumanoidRootPart.CFrame = oldCFrame
 	localPlayer.Character.Humanoid.AutoRotate = true
+	camera.CameraType = Enum.CameraType.Custom
 
 	_G.adcWorking = false
 end
@@ -678,15 +741,15 @@ local function voidKill()
 
 		elseif localPlayer.Character:GetAttribute("Character") == "Batter" then
 			print("Bat")
-			task.wait(0.5)
+			task.wait(0.65)
 
 		elseif localPlayer.Character:GetAttribute("Character") == "Blade" then
 			print("Blade")
-			task.wait(0.3)
+			task.wait(0.5)
 
 		elseif localPlayer.Character:GetAttribute("Character") == "Esper" then
 			print("Tatsu")
-			task.wait(0.25)
+			task.wait(0.15)
 		end
 	end
 	_G.voidNeedTp = true
@@ -704,11 +767,10 @@ end
 RunService.Heartbeat:Connect(function()
 	if localPlayer.Character then
 		if _G.adcNeedTp == true then
-			localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -495, 1)
+			localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -490, 1)
 
 			if _G.killActivated == true then
 				_G.killActivated = false
-				killToggle:Set(false)
 			end
 		end
 
