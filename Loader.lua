@@ -93,7 +93,7 @@ local autoVoidToggle = Tab2:CreateToggle({
 	end,
 })
 
-local voidDropdown = Tab:CreateDropdown({
+local voidDropdown = Tab2:CreateDropdown({
 	Name = "Void Kill Quotes",
 	Options = {"1 (Default Wait Time)", "2 (Smart Wait Time)"},
 	CurrentOption = {"2 (Smart Wait Time)"},
