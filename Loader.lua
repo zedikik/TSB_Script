@@ -29,7 +29,7 @@ if not _G.killWorkChars then
 	_G.adcActivated = false -- anti death counter
 	_G.adcNeedTp = false
 	_G.adcNeedCustomTp = false
-	_G.adcCusomCFrame = CFrame.new(0,0,0)
+	_G.adcCusomCFrame = _G.adcCusomCFrame = CFrame.new(-66, 30, 20356) 
 	_G.adcWorking = false
 	_G.isDeath = false -- check if player anim == 11343250001 (death counter anim)
 	_G.adcQuotes = 1 -- 1 is void, 2 is punish
@@ -786,6 +786,7 @@ local function antiDeathCounter()
 		repeat
 			_G.adcNeedCustomTp = true
 		until task.wait(1)
+		_G.adcNeedCustomTp = false
 	end
 
 	_G.adcWorking = false
@@ -844,7 +845,9 @@ RunService.Heartbeat:Connect(function()
 		end
 
 		if _G.adcNeedCustomTp == true then
-			localPlayer.Character.HumanoidRootPart.CFrame = _G.adcCusomCFrame
+			if localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") then
+				localPlayer.Character.HumanoidRootPart.CFrame = _G.adcCusomCFrame
+			end
 
 			if _G.killActivated == true then
 				_G.killActivated = false
