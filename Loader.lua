@@ -674,9 +674,8 @@ RunService.Heartbeat:Connect(function()
 
 			local isAnim
 			for i, v in voidAnims do
-				isAnim = getPlayingAnim(v)
-				if isAnim == true then
-					break
+				if isAnim == false then
+					isAnim = getPlayingAnim(v)
 				end
 			end
 			if _G.voidKillActivated == true and _G.voidKilling == false and isAnim == true then
