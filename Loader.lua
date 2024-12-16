@@ -634,17 +634,17 @@ local function voidKill()
 	if _G.voidKillActivated == false then return end
 	if _G.voidKilling == true then return end
 	if _G.isDeath == true then return end
-	
+
 	local oldCFrame = localPlayer.Character.HumanoidRootPart.CFrame
-	
+
 	_G.voidKilling = true
 	_G.voidNeedTp = true
 	print("tp")
-	
+
 	task.wait(3)
-	
+
 	_G.voidNeedTp = false
-	
+
 	localPlayer.Character.HumanoidRootPart.CFrame = oldCFrame
 end
 
@@ -659,9 +659,9 @@ RunService.Heartbeat:Connect(function()
 				killToggle:Set(false)
 			end
 		end
-		
+
 		if _G.voidNeedTp == true then
-			localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -495, 1)
+			localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -470, 1)
 		end
 	end
 
