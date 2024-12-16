@@ -156,7 +156,7 @@ local function setupUI()
 				_G.adcActivated = Value
 			end,
 		})
-		
+
 		local deathCounterDropdown = Tab3:CreateDropdown({
 			Name = "Anti Death Counter Quotes",
 			Options = {"Void Kill ur Enemy (Bypass Death Counter)", "Punish ur Enemy (teleport him to selected place)"},
@@ -181,7 +181,7 @@ local function setupUI()
 				end
 			end,
 		})
-		
+
 		local deathPunishLocDropdown = Tab3:CreateDropdown({
 			Name = "Anti Death Counter Punish Location",
 			Options = {"Death Counter Room", "Atomic Slash Room", "Upper Baseplate", "Lower Baseplate"},
@@ -199,15 +199,15 @@ local function setupUI()
 					if string.match(option, "Death") then
 						_G.punishLoc = 1
 						_G.adcCusomCFrame = CFrame.new(-66, 30, 20356)
-						
+
 					elseif string.match(option, "Atomic") then
 						_G.punishLoc = 2
 						_G.adcCusomCFrame = CFrame.new(1050, 140, 23010)
-						
+
 					elseif string.match(option, "Upper") then
 						_G.punishLoc = 3
 						_G.adcCusomCFrame = CFrame.new(1060, 405, 22887)
-						
+
 					elseif string.match(option, "Lower") then
 						_G.punishLoc = 4
 						_G.adcCusomCFrame = CFrame.new(1060, 20, 22887)
@@ -769,7 +769,7 @@ local function antiDeathCounter()
 			v.Enabled = false
 		end
 	end
-	
+
 	if _G.adcQuotes == 1 then
 		repeat
 			_G.adcNeedTp = true
@@ -783,18 +783,9 @@ local function antiDeathCounter()
 		end
 		camera.CameraType = Enum.CameraType.Custom
 	else
-		if _G.punishLoc == 1 then
-			
-			
-		elseif _G.punishLoc == 2 then
-			
-		elseif _G.punishLoc == 3 then
-			
-		elseif _G.punishLoc == 4 then
-			
-		else
-			warn(_G.punishLoc)
-		end
+		repeat
+			_G.adcNeedCustomTp = true
+		until task.wait(1)
 	end
 
 	_G.adcWorking = false
@@ -851,10 +842,10 @@ RunService.Heartbeat:Connect(function()
 				_G.killActivated = false
 			end
 		end
-		
+
 		if _G.adcNeedCustomTp == true then
 			localPlayer.Character.HumanoidRootPart.CFrame = _G.adcCusomCFrame
-			
+
 			if _G.killActivated == true then
 				_G.killActivated = false
 			end
