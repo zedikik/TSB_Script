@@ -661,7 +661,7 @@ RunService.Heartbeat:Connect(function()
 		end
 
 		if _G.voidNeedTp == true then
-			localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -470, 1)
+			localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -400, 1)
 		end
 	end
 
