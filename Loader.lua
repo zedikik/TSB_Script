@@ -638,6 +638,8 @@ local function voidKill()
 	local oldCFrame = localPlayer.Character.HumanoidRootPart.CFrame
 
 	_G.voidKilling = true
+	
+	task.wait(0.3)
 	_G.voidNeedTp = true
 	print("tp")
 
@@ -667,25 +669,21 @@ RunService.Heartbeat:Connect(function()
 	end
 
 	if localPlayer.Character then
-		local isDeathCountered = getPlayingAnim(11343250001)
+		local isDeathCountered = getPlayingAnim("11343250001")
 		_G.isDeath = isDeathCountered
 
 		if _G.voidKillActivated == true then
-			local voidAnims = {"12273188754", "12309835105"} -- rbxassetid://14516273501
+			local voidAnims = {"12273188754", "12309835105"; "14004235777", "14046756619", "14705929107"; "15145462680", "15295895753"; "16139108718"; ""} -- rbxassetid://14516273501
 
 			local isAnim = false
 			for i, v in voidAnims do
 				if isAnim == false then
 					isAnim = getPlayingAnim(v)
-				else
-					warn("anim")
 				end
 			end
 			if _G.voidKillActivated == true and _G.voidKilling == false and isAnim == true then
 				print("start func")
 				voidKill()
-			else
-				warn(_G.voidKillActivated == true, _G.voidKilling == false, isAnim == true)
 			end
 		end
 	end
