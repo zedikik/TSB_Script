@@ -34,7 +34,7 @@ if not _G.killWorkChars then
 	_G.voidKillActivated = false -- auto void kill activated
 	_G.voidNeedTp = false
 	_G.voidKilling = false 
-	_G.voidKillQuotes = 1 -- wait time (1 = no wait; 2 = wait anim end)
+	_G.voidKillQuotes = 1 -- wait time (1 = default time; 2 = smart wait)
 end
 
 local Window = Rayfield:CreateWindow({
@@ -636,10 +636,30 @@ local function voidKill()
 	if _G.isDeath == true then return end
 
 	local oldCFrame = localPlayer.Character.HumanoidRootPart.CFrame
+	local charAttribute = localPlayer.Character:GetAttribute("Character")
 
 	_G.voidKilling = true
-	
-	task.wait(0.3)
+
+	if _G.voidKillQuotes == 1 then
+		task.wait(0.25)
+	else
+		if localPlayer.Character:GetAttribute("Character") == "Hunter" then
+			print("Hunter")
+			task.wait(0.25)
+			
+		elseif localPlayer.Character:GetAttribute("Character") == "Batter" then
+			print("Bat")
+			task.wait(0.5)
+			
+		elseif localPlayer.Character:GetAttribute("Character") == "Blade" then
+			print("Blade")
+			task.wait(0.3)
+			
+		elseif localPlayer.Character:GetAttribute("Character") == "Esper" then
+			print("Tatsu")
+			task.wait(0.25)
+		end
+	end
 	_G.voidNeedTp = true
 	print("tp")
 
@@ -673,7 +693,7 @@ RunService.Heartbeat:Connect(function()
 		_G.isDeath = isDeathCountered
 
 		if _G.voidKillActivated == true then
-			local voidAnims = {"12273188754", "12309835105"; "14004235777", "14046756619", "14705929107"; "15145462680", "15295895753"; "16139108718"; ""} -- rbxassetid://14516273501
+			local voidAnims = {"12273188754"; "14004235777", "14046756619", "14705929107"; "15145462680", "15295895753"; "16139108718"; ""} -- rbxassetid://14516273501
 
 			local isAnim = false
 			for i, v in voidAnims do
@@ -706,7 +726,6 @@ RunService.Heartbeat:Connect(function()
 		end
 		if not has or has == false then
 			killWorking = false
-			warn(localPlayer.Character:GetAttribute("Character"), "has = false")
 		else
 			killWorking = true
 		end
