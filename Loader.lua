@@ -29,7 +29,7 @@ if not _G.killWorkChars then
 	_G.adcActivated = false -- anti death counter
 	_G.adcNeedTp = false
 	_G.adcNeedCustomTp = false
-	_G.adcCusomCFrame = _G.adcCusomCFrame = CFrame.new(-66, 30, 20356) 
+	_G.adcCusomCFrame = CFrame.new(-66, 30, 20356) 
 	_G.adcWorking = false
 	_G.isDeath = false -- check if player anim == 11343250001 (death counter anim)
 	_G.adcQuotes = 1 -- 1 is void, 2 is punish
@@ -49,7 +49,7 @@ if not workspace:FindFirstChild("VoidPlate") then
 	voidPlate.Anchored = true
 	voidPlate.Material = Enum.Material.ForceField
 	voidPlate.Size = Vector3.new(1027, 1, 770)
-	voidPlate.CFrame = CFrame.new(0, -500, 0)
+	voidPlate.CFrame = CFrame.new(0, -496, 0)
 end
 
 local Window = Rayfield:CreateWindow({
@@ -83,10 +83,12 @@ local Window = Rayfield:CreateWindow({
 local Tab = Window:CreateTab("Main", "rewind")
 local Tab2 = Window:CreateTab("Visuals", "rewind")
 local Tab3 = Window:CreateTab("Attacks", "rewind")
+local Tab4 = Window:CreateTab("Teleports", "rewind")
 
 local Section = Tab:CreateSection("Main")
 local section2 = Tab2:CreateSection("Visuals")
 local Section3 = Tab3:CreateSection("Exploits")
+local Section4 = Tab4:CreateSection("Locations")
 
 
 local function setupUI()
@@ -315,10 +317,62 @@ local function setupUI()
 		})
 	end
 
+	local function setupTab4()
+		local MapCenter = Tab4:CreateButton({
+			Name = "Map Center",
+			Callback = function()
+				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(149, 440, 29)
+			end,
+		})
+
+		local voidPlate = Tab4:CreateButton({
+			Name = "Void Platform",
+			Callback = function()
+				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(0, -493, 0)
+			end,
+		})
+
+		local DeathCounterRoom = Tab4:CreateButton({
+			Name = "Death Counter Room",
+			Callback = function()
+				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-66, 30, 20356)
+			end,
+		})
+
+		local AtomicSlashRoom = Tab4:CreateButton({
+			Name = "Atomic Slash Room",
+			Callback = function()
+				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1050, 140, 23010)
+			end,
+		})
+
+		local UpperBaseplate = Tab4:CreateButton({
+			Name = "Upper Baseplate",
+			Callback = function()
+				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1060, 405, 22887)
+			end,
+		})
+
+		local LowerBaseplate = Tab4:CreateButton({
+			Name = "Lower Baseplate",
+			Callback = function()
+				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1060, 20, 22887)
+			end,
+		})
+		
+		local weakestDummy = Tab4:CreateButton({
+			Name = "Weakest Dummy",
+			Callback = function()
+				localPlayer.Character.HumanoidRootPart.CFrame = workspace.Live["Weakest Dummy"].HumanoidRootPart.CFrame
+			end,
+		})
+
+	end
 
 	setupTab()
 	setupTab2()
 	setupTab3()
+	setupTab4()
 end
 setupUI()
 
