@@ -30,7 +30,7 @@ if not _G.killWorkChars then
 	_G.adcWorking = false
 	_G.isDeath = false -- check if player anim == 11343250001 (death counter anim)
 	_G.adcQuotes = 1 -- wait time (1 = no wait; 2 = 4 seconds fakeout; 3 = 8 seconds long fakeout)
-	
+
 	_G.voidKillActivated = false -- auto void kill activated
 	_G.voidKilling = false 
 	_G.voidKillQuotes = 1 -- wait time (1 = no wait; 2 = wait anim end)
@@ -596,7 +596,7 @@ end
 local function getPlayingAnim(animId)
 	if not animId then return end
 	if type(animId) ~= "string" then animId = tostring(animId) end
-	
+
 	if localPlayer.Character then
 		local humanoid = localPlayer.Character:FindFirstChildOfClass("Humanoid")
 		if humanoid and (humanoid.Health ~= 0 and humanoid.Health ~= 1) then
@@ -627,7 +627,7 @@ local function getPlayingAnim(animId)
 			end
 		end
 	end
-	
+
 	return false
 end
 
@@ -636,7 +636,7 @@ RunService.Heartbeat:Connect(function()
 	if localPlayer.Character then
 		if _G.adcNeedTp == true then
 			localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -496, 1)
-			
+
 			if _G.killActivated == true then
 				_G.killActivated = false
 				killToggle:Set(false)
@@ -648,18 +648,22 @@ RunService.Heartbeat:Connect(function()
 		local isDeathCountered = getPlayingAnim(11343250001)
 		_G.isDeath = isDeathCountered
 		
-		local voidAnims = {"12273188754", "12309835105"} -- rbxassetid://14516273501
-		
-		local isAnim
-		for i, v in voidAnims do
-			isAnim = getPlayingAnim(v)
+		if _G.voidKillActivated == true and _G.voidKilling == false then
+			local voidAnims = {"12273188754", "12309835105"} -- rbxassetid://14516273501
+
+			local isAnim
+			for i, v in voidAnims do
+				isAnim = getPlayingAnim(v)
+				if isAnim == true then
+					break
+				end
+			end
 			if isAnim == true then
-				break
+				print(isAnim, "Void anim") -- rbxassetid://12273188754, 
 			end
 		end
-		print(isAnim, "Flow anim") -- rbxassetid://12273188754, 
 	end
-	
+
 	if localPlayer.Character then
 		if _G.adcActivated == true then
 			if _G.isDeath == true then
@@ -667,7 +671,7 @@ RunService.Heartbeat:Connect(function()
 			end
 		end
 	end
-	
+
 	if localPlayer.Character then
 		local has = false
 		for i, v in pairs(_G.killWorkChars) do
