@@ -99,13 +99,23 @@ local voidDropdown = Tab2:CreateDropdown({
 	CurrentOption = {"2 (Smart Wait Time)"},
 	MultipleOptions = false,
 	Flag = "voidDropdown", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-	Callback = function(Option)
-		print(Option)
-		if string.match(Option, "Default") then
-			print("Def")
-			_G.voidKillQuotes = 1
+	Callback = function(Opt)
+		local option = nil
+		for i, v in Opt do
+			if not option or option == nil then
+				option = v
+			end
+		end
+		if option and option ~= nil then
+			if string.match(option, "Default") then
+				print("Default")
+				_G.voidKillQuotes = 1
+			else
+				print("Smart")
+				_G.voidKillQuotes = 2
+			end
 		else
-			_G.voidKillQuotes = 2
+			warn(option)
 		end
 	end,
 })
