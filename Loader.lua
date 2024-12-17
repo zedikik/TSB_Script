@@ -965,9 +965,11 @@ local function voidKill()
 end
 
 local function tatsuUlt()
-	if _G.tatsuUltActivated == true then return end
-	if _G.tatsuUltWorking == true then return end
-	if not localPlayer.Character then return end
+	print("func")
+	if _G.tatsuUltActivated == false then warn("not activated") return end
+	if _G.tatsuUltWorking == true then warn("already working") return end
+	if not localPlayer.Character then warn("Char not found") return end
+	print("skuf")
 	_G.tatsuUltWorking = true
 	print("ult")
 
@@ -981,7 +983,7 @@ local function tatsuUlt()
 
 	local oldCFrame = localPlayer.Character:FindFirstChild("HumanoidRootPart").CFrame
 
-	if chars and chars[1] then
+	if chars[1] then
 		print("bring all")
 		for i, v in pairs(chars) do
 			if localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("HumanoidRootPart") then
@@ -1004,6 +1006,8 @@ local function tatsuUlt()
 			_G.tatsuUltWorking = false
 			return true
 		end
+	else
+		warn(#chars, chars[1], chars[2])
 	end
 
 	_G.tatsuUltWorking = false
