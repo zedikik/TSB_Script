@@ -41,6 +41,12 @@ if not _G.killWorkChars then
 	_G.voidKillQuotes = 2 -- wait time (1 = default time; 2 = smart wait)
 
 	_G.hitboxColor = Color3.new(255, 0, 0)
+
+	_G.ultEspActivated = false -- move is balde; MainWind in head, AbsoluteImmortal in char; GlowingArm is genos; AbsoluteImmortal is sonic, move is sonic; AbsoluteImmortal is batter, aura1 in head  is batter; AbsoluteImmortal is blade, Move is blade; Headeffectspace is tatsu, AbsoluteImmortal is tatsu, 5aura1 in head  is tatsu; 
+
+	_G.tatsuUltActivated = false
+	_G.tatsuUltWorking = false
+	_G.tatsuUltQuotes = 2 -- 1 is bring all; 2 is void kill all;
 end
 
 if not workspace:FindFirstChild("VoidPlate") then
@@ -63,17 +69,17 @@ local Window = Rayfield:CreateWindow({
 	DisableBuildWarnings = false, -- Prevents Rayfield from warning when the script has a version mismatch with the interface
 
 	ConfigurationSaving = {
-		Enabled = true,
+		Enabled = false,
 		FolderName = "Tsb_Script", -- Create a custom folder for your hub/game
 		FileName = "config"
 	},
 
 	KeySystem = true, -- Set this to true to use our key system
 	KeySettings = {
-		Title = "Key",
+		Title = "Tsb script",
 		Subtitle = "Key System",
 		Note = "Key is Skuff", -- Use this to tell the user how to get a key
-		FileName = "Key", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
+		FileName = "TSBScrKey", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
 		SaveKey = true, -- The user's key will be saved, but if you change the key, they will be unable to use your script
 		GrabKeyFromSite = false, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
 		Key = {"Skuff", "skuff"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
@@ -85,10 +91,10 @@ local Tab2 = Window:CreateTab("Visuals", "rewind")
 local Tab3 = Window:CreateTab("Attacks", "rewind")
 local Tab4 = Window:CreateTab("Teleports", "rewind")
 
-local Section = Tab:CreateSection("Main")
-local section2 = Tab2:CreateSection("Visuals")
-local Section3 = Tab3:CreateSection("Exploits")
-local Section4 = Tab4:CreateSection("Locations")
+local MainSection = Tab:CreateSection("Main")
+local vilualSection = Tab2:CreateSection("Visuals")
+local exploitSection = Tab3:CreateSection("Exploits")
+local locationsSection = Tab4:CreateSection("Locations")
 
 
 local function setupUI()
@@ -258,7 +264,49 @@ local function setupUI()
 			end,
 		})
 
-		local Section3 = Tab3:CreateSection("Kills Farm (afk kill stealer)")
+		local bringSection = Tab3:CreateSection("Bring Exploit")
+
+
+		local tatsuBringToggle = Tab3:CreateToggle({
+			Name = "Tatsumaki Ult",
+			CurrentValue = false,
+			Flag = "tatsuUltToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Value)
+				print(Value)
+				_G.tatsuUltActivated = Value
+			end,
+		})
+
+		local tatsuUltQuotesDropdown = Tab3:CreateDropdown({
+			Name = "Tatsumaki Ult Quotes",
+			Options = {"Bring All", "Void Kill all"},
+			CurrentOption = {"Void Kill all"},
+			MultipleOptions = false,
+			Flag = "tatsuUltQuotesDropdown", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Opt)
+				local option = nil
+				for i, v in Opt do
+					if not option or option == nil then
+						option = v
+					end
+				end
+				if option and option ~= nil then
+					if string.match(option, "Bring") then
+						print("Bring")
+						_G.tatsuUltQuotes = 1
+					else
+						print("Void")
+						_G.tatsuUltQuotes = 2
+					end
+				else
+					warn(option)
+				end
+			end,
+		})
+
+
+		local killFarmSection = Tab3:CreateSection("Kills Farm (afk kill stealer)")
+
 
 		local killToggle = Tab3:CreateToggle({
 			Name = "Toggle Kill Stealer",
@@ -359,7 +407,7 @@ local function setupUI()
 				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1060, 20, 22887)
 			end,
 		})
-		
+
 		local weakestDummy = Tab4:CreateButton({
 			Name = "Weakest Dummy",
 			Callback = function()
@@ -808,6 +856,35 @@ local function onCharAdded(char)
 	end)
 end
 
+local function hlChar(character)
+	if not character then return end
+
+	if character:IsA("Player") then character = character.Character end
+
+	local highlight = nil
+
+	if not character:FindFirstChild("UltEsp") then
+		highlight = Instance.new("Highlight", character)
+		highlight.DepthMode = Enum.HighlightDepthMode.Occluded
+		highlight.FillColor = Color3.fromRGB(255, 255, 0)
+		highlight.FillTransparency = 0.5
+		highlight.OutlineTransparency = 0.35
+		highlight.Name = "UltEsp"
+
+		highlight.Enabled = false
+	else
+		highlight = character:FindFirstChild("UltEsp")
+	end
+
+	if not highlight then return end
+
+	character.ChildAdded:Connect(function(child)
+		if child.Name == "AbsoluteImmortal" then
+			highlight.Enabled = true
+		end
+	end)
+end
+
 
 local function antiDeathCounter()
 	if _G.adcActivated == false then return end
@@ -887,6 +964,52 @@ local function voidKill()
 	localPlayer.Character.HumanoidRootPart.CFrame = oldCFrame
 end
 
+local function tatsuUlt()
+	if _G.tatsuUltActivated == true then return end
+	if _G.tatsuUltWorking == true then return end
+	if not localPlayer.Character then return end
+	_G.tatsuUltWorking = true
+	print("ult")
+
+	local chars = {}
+	for i, v in pairs(Players:GetPlayers()) do
+		if v and v.Character then
+			print(v.Name)
+			table.insert(chars, v.Character)
+		end
+	end
+
+	local oldCFrame = localPlayer.Character:FindFirstChild("HumanoidRootPart").CFrame
+
+	if chars and chars[1] then
+		print("bring all")
+		for i, v in pairs(chars) do
+			if localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("HumanoidRootPart") then
+				localPlayer.Character:FindFirstChild("HumanoidRootPart").CFrame = v:FindFirstChild("HumanoidRootPart").CFrame
+				task.wait(0.15)
+			end
+		end
+		localPlayer.Character:FindFirstChild("HumanoidRootPart").CFrame = oldCFrame
+
+		if _G.tatsuUltQuotes == 1 then
+			_G.tatsuUltWorking = false
+			return true
+		else
+			_G.voidNeedTp = true
+			task.wait(2.5)
+			_G.voidNeedTp = false
+			localPlayer.Character:FindFirstChild("HumanoidRootPart").CFrame = oldCFrame
+			print("voided")
+
+			_G.tatsuUltWorking = false
+			return true
+		end
+	end
+
+	_G.tatsuUltWorking = false
+	return false
+end
+
 
 RunService.Heartbeat:Connect(function()
 	if localPlayer.Character then
@@ -915,6 +1038,7 @@ RunService.Heartbeat:Connect(function()
 
 	if localPlayer.Character then
 		local isDeathCountered = getPlayingAnim("11343250001")
+		local tatsuUltAct = getPlayingAnim("16734584478")
 		_G.isDeath = isDeathCountered
 
 		if _G.voidKillActivated == true then
@@ -930,6 +1054,11 @@ RunService.Heartbeat:Connect(function()
 				print("start func")
 				voidKill()
 			end
+		end
+
+		if tatsuUltAct == true and _G.tatsuUltActivated == true and _G.tatsuUltWorking == false then
+			print("tATSU ULT")
+			tatsuUlt()
 		end
 	end
 
@@ -966,6 +1095,8 @@ RunService.Heartbeat:Connect(function()
 end)
 
 local function onPlrAdded(plr)
+	plr.CharacterAdded:Connect(hlChar)
+
 	if _G.killWhiteList == true then
 		if plr:IsFriendsWith(localPlayer.UserId) then
 			return
@@ -974,22 +1105,13 @@ local function onPlrAdded(plr)
 
 	plr.CharacterAdded:Connect(onCharAdded)
 	if plr.Character then
+		hlChar(plr.Character)
 		onCharAdded(plr.Character)
 	end
 end
 
 for _, plr in Players:GetPlayers() do
-	if _G.killWhiteList == true then
-		if plr ~= localPlayer then
-			if plr:IsFriendsWith(localPlayer.UserId) then
-				return
-			else
-				onPlrAdded(plr)
-			end
-		end
-	else
-		onPlrAdded(plr)
-	end
+	onPlrAdded(plr)
 end
 Players.PlayerAdded:Connect(onPlrAdded)
 
