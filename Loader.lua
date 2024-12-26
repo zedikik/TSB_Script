@@ -19,12 +19,12 @@ local selectedChar = ""
 if not _G.killWorkChars then
 	_G.killWorkChars = {"Hunter", "Cyborg", "Ninja", "Esper", "Blade"}
 	_G.killactivated = false
+	_G.killChargeUp = false 
+	_G.killKilling = false
 	_G.killWhiteList = true
 	_G.killSafeSelf = true
 	_G.killSafeProp = 15
 	_G.killStealProp = 15
-	_G.killChargeUp = false 
-	_G.killKilling = false
 
 	_G.adcActivated = false -- anti death counter
 	_G.adcNeedTp = false
@@ -47,6 +47,15 @@ if not _G.killWorkChars then
 	_G.tatsuUltActivated = false
 	_G.tatsuUltWorking = false
 	_G.tatsuUltQuotes = 2 -- 1 is bring all; 2 is void kill all;
+
+	_G.targetActivated = false
+	_G.targetAutoAfk = false
+	_G.targetNeedTp = false
+	_G.targetTarget = nil
+	_G.targetQuotes = 1 -- 1 is basic target, 2 is smart target (tp only if has skills)
+	_G.targetSafeActivated = true
+	_G.targetSafeProp = 15
+	_G.targetSafeQuotes = 1 -- 1 is basic (15hp prop void); 2 is absolute safe (15hp prop void * CFrame.Angles(0, 90, 0)
 end
 
 if not workspace:FindFirstChild("VoidPlate") then
@@ -96,6 +105,7 @@ local vilualSection = Tab2:CreateSection("Visuals")
 local exploitSection = Tab3:CreateSection("Exploits")
 local locationsSection = Tab4:CreateSection("Locations")
 
+local targetDropdown
 
 local function setupUI()
 	local function setupTab()
@@ -304,6 +314,125 @@ local function setupUI()
 			end,
 		})
 
+		local targetSection = Tab3:CreateSection("Target Exploit")
+
+
+		local targetToggle = Tab3:CreateToggle({
+			Name = "Target Toggle",
+			CurrentValue = false,
+			Flag = "targetToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Value)
+				print(Value)
+				_G.targetActivated = Value
+			end,
+		})
+		-- _G.targetAutoAfk = false
+
+		local targetTargetDropdown = Tab3:CreateDropdown({
+			Name = "Target Name",
+			Options = {},
+			CurrentOption = {},
+			MultipleOptions = false,
+			Flag = "nullValue", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Opt)
+				local option = nil
+				for i, v in Opt do
+					if not option or option == nil then
+						option = v
+					end
+				end
+				if option and option ~= nil then
+					print(option)
+					local player = nil
+					for i, v in pairs(Players:GetPlayers()) do
+						if string.match(string.lower(v.Name), string.lower(option)) then
+							player = v
+						end
+					end
+					if player and player ~= localPlayer then
+						print(player.Name)
+						_G.targetTarget = player
+					else
+						print("nil target")
+						_G.targetTarget = ""
+					end
+				else
+					warn(option)
+				end
+			end,
+		})
+		targetDropdown = targetTargetDropdown
+		local playersTable = {}
+		for i, v in pairs(Players:GetPlayers()) do
+			table.insert(playersTable, v.Name)
+		end
+		targetDropdown:Set(playersTable)
+
+
+		local targetSafeModeToggle = Tab3:CreateToggle({
+			Name = "Target Safe Mode",
+			CurrentValue = false,
+			Flag = "targetSafeModeToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Value)
+				print(Value)
+				_G.targetSafeActivated = Value
+			end,
+		})
+
+		local targetSafePropSlider = Tab3:CreateSlider({
+			Name = "Safe Prop",
+			Range = {0, 100},
+			Increment = 1,
+			Suffix = "Health",
+			CurrentValue = 15,
+			Flag = "targetSafeProp", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Value)
+				print(Value)
+				_G.targetSafeProp = Value
+			end,
+		})
+
+		local targetSafeModeQuotesDropdown = Tab3:CreateDropdown({
+			Name = "Target Safe Mode Quotes",
+			Options = {"Basic (Tp to invisible platform if u has lower 15hp)", "Smart (Tp to invisible platform with angles)"},
+			CurrentOption = {"Smart (Tp to invisible platform with angles)"},
+			MultipleOptions = false,
+			Flag = "targetSafeQuotesDropdown", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Opt)
+				local option = nil
+				for i, v in Opt do
+					if not option or option == nil then
+						option = v
+					end
+				end
+				if option and option ~= nil then
+					if string.match(option, "Basic") then
+						print("Basic")
+						_G.targetSafeQuotes = 1
+					else
+						print("Smart")
+						_G.targetSafeQuotes = 2
+					end
+				else
+					warn(option)
+				end
+			end,
+		})
+
+		local updateDropdown = Tab3:CreateButton({
+			Name = "Update Players list",
+			Callback = function()
+				if targetDropdown then
+					local playersTable = {}
+					for i, v in pairs(Players:GetPlayers()) do
+						print(v.Name)
+						table.insert(playersTable, v.Name)
+					end
+					targetDropdown:Set(playersTable)
+				end
+			end,
+		})
+
 
 		local killFarmSection = Tab3:CreateSection("Kills Farm (afk kill stealer)")
 
@@ -466,6 +595,7 @@ end
 local function onCharAdded(char)
 	char:WaitForChild("Humanoid"):GetPropertyChangedSignal("Health"):Connect(function()
 		if not char:FindFirstChild("HumanoidRootPart") then return end
+		if not _G.killactivated or _G.killactivated == false then return end
 		if math.floor(char.Humanoid.Health) > _G.killStealProp and (math.floor(char.Humanoid.Health) ~= 0 or math.floor(char.Humanoid.Health) ~= 1) then return end
 		if _G.killSafeSelf == true and localPlayer.Character.Humanoid.Health <= _G.killSafeProp then return end
 		if _G.killKilling == true then return end
@@ -877,12 +1007,6 @@ local function hlChar(character)
 	end
 
 	if not highlight then return end
-
-	character.ChildAdded:Connect(function(child)
-		if child.Name == "AbsoluteImmortal" then
-			highlight.Enabled = true
-		end
-	end)
 end
 
 
@@ -934,7 +1058,7 @@ local function voidKill()
 	_G.voidKilling = true
 
 	if _G.voidKillQuotes == 1 then
-		task.wait(0.25)
+		task.wait(0.3)
 	else
 		if localPlayer.Character:GetAttribute("Character") == "Hunter" then
 			print("Hunter")
@@ -956,7 +1080,26 @@ local function voidKill()
 	_G.voidNeedTp = true
 	print("tp")
 
-	task.wait(4)
+	if _G.voidKillQuotes == 1 then
+		task.wait(4)
+	else
+		if localPlayer.Character:GetAttribute("Character") == "Hunter" then
+			print("Hunter")
+			task.wait(3)
+
+		elseif localPlayer.Character:GetAttribute("Character") == "Batter" then
+			print("Bat")
+			task.wait(5)
+
+		elseif localPlayer.Character:GetAttribute("Character") == "Blade" then
+			print("Blade")
+			task.wait(3)
+
+		elseif localPlayer.Character:GetAttribute("Character") == "Esper" then
+			print("Tatsu")
+			task.wait(1.5)
+		end
+	end
 
 	_G.voidNeedTp = false
 	_G.voidKilling = false
@@ -983,29 +1126,37 @@ local function tatsuUlt()
 
 	local oldCFrame = localPlayer.Character:FindFirstChild("HumanoidRootPart").CFrame
 
+	task.wait(1)
 	if chars[1] then
 		print("bring all")
 		for i, v in pairs(chars) do
 			if localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("HumanoidRootPart") then
 				localPlayer.Character:FindFirstChild("HumanoidRootPart").CFrame = v:FindFirstChild("HumanoidRootPart").CFrame
-				task.wait(0.15)
+				task.wait(0.12)
 			end
 		end
+
+		--if _G.tatsuUltQuotes == 1 then
 		localPlayer.Character:FindFirstChild("HumanoidRootPart").CFrame = oldCFrame
 
-		if _G.tatsuUltQuotes == 1 then
+		task.defer(function()
+			task.wait(7)
 			_G.tatsuUltWorking = false
-			return true
-		else
+		end)
+
+		return true
+		--[[else
 			_G.voidNeedTp = true
 			task.wait(2.5)
 			_G.voidNeedTp = false
-			localPlayer.Character:FindFirstChild("HumanoidRootPart").CFrame = oldCFrame
 			print("voided")
 
-			_G.tatsuUltWorking = false
+			task.defer(function()
+				task.wait(7)
+				_G.tatsuUltWorking = false
+			end)
 			return true
-		end
+		end]]
 	else
 		warn(#chars, chars[1], chars[2])
 	end
@@ -1014,9 +1165,56 @@ local function tatsuUlt()
 	return false
 end
 
+local function target()
+	if _G.targetActivated == false then return end
+	if _G.targetTarget == nil then return end
+	print("target", _G.targetTarget.Name)
+
+	local player = _G.targetTarget
+
+	if player then
+		if _G.targetQuotes == 1 then -- basic mode
+			_G.targetNeedTp = true
+
+		else -- smart mode
+			repeat
+				task.wait(0.5)
+				if not playerGui.Hotbar.Backpack.Hotbar["1"].Base:FindFirstChild("Cooldown") then
+					_G.targetNeedTp = true
+
+				elseif not playerGui.Hotbar.Backpack.Hotbar["2"].Base:FindFirstChild("Cooldown") then
+					_G.targetNeedTp = true
+
+				elseif not playerGui.Hotbar.Backpack.Hotbar["3"].Base:FindFirstChild("Cooldown") then
+					_G.targetNeedTp = true
+
+				elseif not playerGui.Hotbar.Backpack.Hotbar["4"].Base:FindFirstChild("Cooldown") then
+					_G.targetNeedTp = true
+				else
+					_G.targetNeedTp = false
+					warn("CD")
+				end
+			until _G.targetActivated == false or _G.targetTarget == nil
+			print(_G.targetActivated, _G.targetTarget)
+		end
+	else
+		warn(player)
+	end
+end
+
 
 RunService.Heartbeat:Connect(function()
 	if localPlayer.Character then
+		if _G.adcActivated == true then
+			if _G.isDeath == true then
+				antiDeathCounter()
+			end
+		end
+
+		if _G.targetActivated == true and _G.targetTarget ~= "" and _G.targetTarget.Character  then
+			target()
+		end
+
 		if _G.adcNeedTp == true then
 			localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -490, 1)
 
@@ -1037,6 +1235,28 @@ RunService.Heartbeat:Connect(function()
 
 		if _G.voidNeedTp == true then
 			localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, 205, 1)
+		end
+
+		if _G.targetActivated == true then
+			if _G.targetNeedTp == true then
+				if _G.targetTarget ~= "" and _G.targetTarget.Character then
+					if _G.targetSafeActivated == true then
+						if localPlayer.Character.Humanoid.Health > _G.targetSafeProp then
+							local cf = _G.targetTarget.Character.HumanoidRootPart.CFrame
+							localPlayer.Character.HumanoidRootPart.CFrame = cf - (cf.LookVector * 3.5) + _G.targetTarget.Character.Humanoid.MoveDirection
+						else
+							if _G.targetSafeQuotes == 1 then
+								localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -490, 1)
+							else
+								localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -491, 1) * CFrame.Angles(90, 0, 0)
+							end
+						end
+					else
+						local cf = _G.targetTarget.Character.HumanoidRootPart.CFrame
+						localPlayer.Character.HumanoidRootPart.CFrame = cf - (cf.LookVector * 3.5) + _G.targetTarget.Character.Humanoid.MoveDirection
+					end
+				end
+			end
 		end
 	end
 
@@ -1067,14 +1287,6 @@ RunService.Heartbeat:Connect(function()
 	end
 
 	if localPlayer.Character then
-		if _G.adcActivated == true then
-			if _G.isDeath == true then
-				antiDeathCounter()
-			end
-		end
-	end
-
-	if localPlayer.Character then
 		local has = false
 		for i, v in pairs(_G.killWorkChars) do
 			if localPlayer.Character:GetAttribute("Character") == v then
@@ -1099,25 +1311,42 @@ RunService.Heartbeat:Connect(function()
 end)
 
 local function onPlrAdded(plr)
-	plr.CharacterAdded:Connect(hlChar)
-
 	if _G.killWhiteList == true then
 		if plr:IsFriendsWith(localPlayer.UserId) then
 			return
 		end
 	end
 
+	local playersTable = {}
+	for i, v in pairs(Players:GetPlayers()) do
+		if v ~= localPlayer then
+			table.insert(playersTable, v.Name)
+		end
+	end
+	targetDropdown:Set(playersTable)
+
+
 	plr.CharacterAdded:Connect(onCharAdded)
 	if plr.Character then
-		hlChar(plr.Character)
 		onCharAdded(plr.Character)
 	end
+end
+
+local function onPlrRemoved(plr)
+	local playersTable = {}
+	for i, v in pairs(Players:GetPlayers()) do
+		if v ~= localPlayer then
+			table.insert(playersTable, v.Name)
+		end
+	end
+	targetDropdown:Set(playersTable)
 end
 
 for _, plr in Players:GetPlayers() do
 	onPlrAdded(plr)
 end
 Players.PlayerAdded:Connect(onPlrAdded)
+Players.PlayerRemoving:Connect(onPlrRemoved)
 
 Rayfield:Notify({
 	Title = "Tsb Script",
@@ -1125,3 +1354,4 @@ Rayfield:Notify({
 	Duration = 6.5,
 	Image = 4483362458,
 })
+
