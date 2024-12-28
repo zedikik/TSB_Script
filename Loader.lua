@@ -508,7 +508,7 @@ local function setupUI()
 		local targetQuotesDropdown = Tab3:CreateDropdown({
 			Name = "Target Mode Quotes",
 			Options = {"Basic (auto tp to Player)", "Smart (tp if u has a 1/2/3/4 skill)"},
-			CurrentOption = {"Absolute Safe (Tp to invisible platform with angles)"},
+			CurrentOption = {"Basic (auto tp to Player)"},
 			MultipleOptions = false,
 			Flag = "targetQuotesDropdown", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
 			Callback = function(Opt)
