@@ -1,5 +1,7 @@
-local Players = game:GetService("Players")
+print("injected")
+local TeleportService = game:GetService("TeleportService")
 local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
 
 local localPlayer = Players.LocalPlayer
 local playerGui = localPlayer.PlayerGui
@@ -15,6 +17,59 @@ Rayfield:Notify({
 
 local killWorking = false
 local selectedChar = ""
+local M1sAnimations = {
+	-- kj
+	"17325510002",
+	"17325513870",
+	"17325522388",
+	"17325537719",
+	-- saitama
+	"10469493270",
+	"10469630950",
+	"10469639222",
+	"10469643643",
+	-- garou
+	"13532562418",
+	"13532600125",
+	"13532604085",
+	"13294471966",
+	-- genos
+	"13491635433",
+	"13296577783",
+	"13295919399",
+	"13295936866",
+	-- sonic
+	"13370310513",
+	"13390230973",
+	"13378751717",
+	"13378708199",
+	-- metal bite
+	"14004222985",
+	"13997092940",
+	"14001963401",
+	"14136436157",
+	-- blade master
+	"15259161390",
+	"15240216931",
+	"15240176873",
+	"15162694192",
+	-- tatsumaki
+	"16515503507",
+	"16515520431",
+	"16515448089",
+	"16552234590",
+	-- suriy
+	"17889458563",
+	"17889461810",
+	"17889471098",
+	"17889290569",
+	-- child emperor
+	"123005629431309",
+	"100059874351664",
+	"104895379416342",
+	"134775406437626",
+}
+
 
 if not _G.killWorkChars then
 	_G.killWorkChars = {"Hunter", "Cyborg", "Ninja", "Esper", "Blade"}
@@ -54,12 +109,24 @@ if not _G.killWorkChars then
 	_G.targetTarget = nil
 	_G.targetQuotes = 1 -- 1 is basic target, 2 is smart target (tp only if has skills)
 	_G.targetSafeActivated = true
-	_G.targetSafeProp = 15
+	_G.targetSafeProp = 25
 	_G.targetSafeQuotes = 1 -- 1 is basic (15hp prop void); 2 is absolute safe (15hp prop void * CFrame.Angles(0, 90, 0)
+
+	_G.autoGetIceBoss = false
+
+	_G.snowballBooster = false
+	_G.snowballPlayer = nil
+
+	_G.firstM1 = "The Strongest Hero" -- The Strongest Hero  is default
+	_G.secondM1 = "The Strongest Hero" -- The Strongest Hero  is default
+	_G.thirdM1 = "The Strongest Hero" -- The Strongest Hero  is default
+	_G.fourthM1 = "The Strongest Hero" -- The Strongest Hero  is default
+	_G.M1sActivated = false
 end
 
 if not workspace:FindFirstChild("VoidPlate") then
-	local voidPlate = Instance.new("Part", workspace)
+	local voidPlate = Instance.new("Part")
+	voidPlate.Parent = game.Workspace
 	voidPlate.Name = "VoidPlate"
 	voidPlate.Anchored = true
 	voidPlate.Material = Enum.Material.ForceField
@@ -91,28 +158,85 @@ local Window = Rayfield:CreateWindow({
 		FileName = "TSBScrKey", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
 		SaveKey = true, -- The user's key will be saved, but if you change the key, they will be unable to use your script
 		GrabKeyFromSite = false, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
-		Key = {"Skuff", "skuff"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
+		Key = {"Skuff", "skuff", "SKUFF"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
 	}
 })
 
 local Tab = Window:CreateTab("Main", "rewind")
 local Tab2 = Window:CreateTab("Visuals", "rewind")
 local Tab3 = Window:CreateTab("Attacks", "rewind")
-local Tab4 = Window:CreateTab("Teleports", "rewind")
+local Tab4 = Window:CreateTab("Moveset", "rewind")
+local Tab5 = Window:CreateTab("Teleports", "rewind")
+local Tab6 = Window:CreateTab("Server", "rewind")
 
 local MainSection = Tab:CreateSection("Main")
 local vilualSection = Tab2:CreateSection("Visuals")
 local exploitSection = Tab3:CreateSection("Exploits")
-local locationsSection = Tab4:CreateSection("Locations")
+local m1sSection = Tab4:CreateSection("Custom M1s")
+local locationsSection = Tab5:CreateSection("Locations")
 
 local targetDropdown
 
 local function setupUI()
 	local function setupTab()
-		local Button = Tab:CreateButton({
+		local unloadUI = Tab:CreateButton({
 			Name = "Unload UI",
 			Callback = function()
 				Rayfield:Destroy()
+			end,
+		})
+
+		local debugSection = Tab:CreateSection("Debug functions")
+
+		local manualVoidBind = Tab:CreateKeybind({
+			Name = "Manual void tp",
+			CurrentKeybind = "R",
+			HoldToInteract = false,
+			Flag = "ManualVoitBind", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Keybind)
+				print(Keybind)
+				if _G.voidNeedTp == false and _G.voidKilling == false then
+					local oldCFrame = localPlayer.Character:FindFirstChild("HumanoidRootPart").CFrame
+
+					_G.voidNeedTp = true
+					_G.voidKilling = true
+					task.wait(4)
+					_G.voidKilling = false
+					_G.voidNeedTp = false
+
+					localPlayer.Character.HumanoidRootPart.CFrame = oldCFrame
+				else
+					warn("already void killing or in void")
+				end
+			end,
+		})
+		local tpAllBind = Tab:CreateKeybind({
+			Name = "Bring All (Teleport to all players on map)",
+			CurrentKeybind = "T",
+			HoldToInteract = false,
+			Flag = "bringAllBind", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Keybind)
+				print(Keybind)
+				local oldCFrame = localPlayer.Character:FindFirstChild("HumanoidRootPart").CFrame
+
+				local chars = {}
+				for i, v in pairs(Players:GetPlayers()) do
+					if v and v.Character then
+						if v ~= localPlayer then
+							print(v.Name)
+							table.insert(chars, v.Character)
+						end
+					end
+				end
+
+				for i, v in pairs(chars) do
+					if localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("HumanoidRootPart") then
+						localPlayer.Character:FindFirstChild("HumanoidRootPart").CFrame = v:FindFirstChild("HumanoidRootPart").CFrame
+						task.wait(0.15)
+					end
+				end
+
+				localPlayer.Character:FindFirstChild("HumanoidRootPart").CFrame = oldCFrame
 			end,
 		})
 	end
@@ -126,14 +250,14 @@ local function setupUI()
 				print(Value)
 				if Value == true then
 					for i, v in pairs(localPlayer.Character:GetChildren()) do
-						if string.match(v.Name, "Hitbox_") then
+						if string.match(string.lower(v.Name), "hitbox") then
 							v.Transparency = 0
 							v.Color = _G.hitboxColor
 						end
 					end
 				else
 					for i, v in pairs(localPlayer.Character:GetChildren()) do
-						if string.match(v.Name, "Hitbox_") then
+						if string.match(string.lower(v.Name), "hitbox") then
 							v.Transparency = 1
 							v.Color = Color3.fromRGB(193, 193, 193) -- default color
 						end
@@ -160,11 +284,42 @@ local function setupUI()
 				else
 					_G.hitboxColor = Color3.fromRGB(255,0,0)
 				end
+
+				for i, v in pairs(localPlayer.Character:GetChildren()) do
+					if string.match(string.lower(v.Name), "hitbox") then
+						v.Transparency = 0
+						v.Color = _G.hitboxColor
+					end
+				end
 			end
 		})
 	end
 
 	local function setupTab3()
+		local snowSection = Tab3:CreateSection("Snow Section")
+
+		local autoGetIceBossToggle = Tab3:CreateToggle({
+			Name = "Auto Get Frozen Soul",
+			CurrentValue = false,
+			Flag = "AGIBToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Value)
+				print(Value)
+				_G.autoGetIceBoss = Value
+			end,
+		})
+
+		local snowballBoosterToggle = Tab3:CreateToggle({
+			Name = "Snowball Booster",
+			CurrentValue = false,
+			Flag = "SBToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Value)
+				print(Value)
+				_G.snowballBooster = Value
+			end,
+		})
+
+		local otherSection = Tab3:CreateSection("Other Exploits")
+
 		local antiDeathCounterToggle = Tab3:CreateToggle({
 			Name = "Anti Death Counter",
 			CurrentValue = false,
@@ -326,14 +481,36 @@ local function setupUI()
 				_G.targetActivated = Value
 			end,
 		})
-		-- _G.targetAutoAfk = false
 
-		local targetTargetDropdown = Tab3:CreateDropdown({
-			Name = "Target Name",
-			Options = {},
-			CurrentOption = {},
+		local targetInput = Tab3:CreateInput({
+			Name = "Target Name (can be shorted) (if dropdown not working)",
+			CurrentValue = "",
+			PlaceholderText = "PlayerName",
+			RemoveTextAfterFocusLost = false,
+			Flag = "targetInput",
+			Callback = function(Text)
+				local player = nil
+				for i, v in pairs(Players:GetPlayers()) do
+					if string.match(string.lower(v.Name), string.lower(Text)) then
+						player = v
+					end
+				end
+				if player and player ~= localPlayer then
+					print(player.Name)
+					_G.targetTarget = player
+				else
+					print("nil target")
+					_G.targetTarget = ""
+				end
+			end,
+		})
+
+		local targetQuotesDropdown = Tab3:CreateDropdown({
+			Name = "Target Mode Quotes",
+			Options = {"Basic (auto tp to Player)", "Smart (tp if u has a 1/2/3/4 skill)"},
+			CurrentOption = {"Absolute Safe (Tp to invisible platform with angles)"},
 			MultipleOptions = false,
-			Flag = "nullValue", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Flag = "targetQuotesDropdown", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
 			Callback = function(Opt)
 				local option = nil
 				for i, v in Opt do
@@ -342,31 +519,18 @@ local function setupUI()
 					end
 				end
 				if option and option ~= nil then
-					print(option)
-					local player = nil
-					for i, v in pairs(Players:GetPlayers()) do
-						if string.match(string.lower(v.Name), string.lower(option)) then
-							player = v
-						end
-					end
-					if player and player ~= localPlayer then
-						print(player.Name)
-						_G.targetTarget = player
+					if string.match(option, "Basic") then
+						print("Basic")
+						_G.targetQuotes = 1
 					else
-						print("nil target")
-						_G.targetTarget = ""
+						print("smart")
+						_G.targetQuotes = 1
 					end
 				else
 					warn(option)
 				end
 			end,
 		})
-		targetDropdown = targetTargetDropdown
-		local playersTable = {}
-		for i, v in pairs(Players:GetPlayers()) do
-			table.insert(playersTable, v.Name)
-		end
-		targetDropdown:Set(playersTable)
 
 
 		local targetSafeModeToggle = Tab3:CreateToggle({
@@ -381,10 +545,10 @@ local function setupUI()
 
 		local targetSafePropSlider = Tab3:CreateSlider({
 			Name = "Safe Prop",
-			Range = {0, 100},
+			Range = {1, 100},
 			Increment = 1,
 			Suffix = "Health",
-			CurrentValue = 15,
+			CurrentValue = 25,
 			Flag = "targetSafeProp", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
 			Callback = function(Value)
 				print(Value)
@@ -418,21 +582,6 @@ local function setupUI()
 				end
 			end,
 		})
-
-		local updateDropdown = Tab3:CreateButton({
-			Name = "Update Players list",
-			Callback = function()
-				if targetDropdown then
-					local playersTable = {}
-					for i, v in pairs(Players:GetPlayers()) do
-						print(v.Name)
-						table.insert(playersTable, v.Name)
-					end
-					targetDropdown:Set(playersTable)
-				end
-			end,
-		})
-
 
 		local killFarmSection = Tab3:CreateSection("Kills Farm (afk kill stealer)")
 
@@ -495,49 +644,150 @@ local function setupUI()
 	end
 
 	local function setupTab4()
-		local MapCenter = Tab4:CreateButton({
+		local firstM1Dropdown = Tab4:CreateDropdown({
+			Name = "First M1",
+			Options = {"The Strongest Hero", "Hero Hunter", "Destructive Cyborg", "Deadly Ninja", "Brutal Demon", "Blade Master", "Wild Psychic", "Martial Artist", "Tech Prodigy", "KJ"},
+			CurrentOption = {"The Strongest Hero"},
+			MultipleOptions = false,
+			Flag = "firstM1Dropdown", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Opt)
+				local option = nil
+				for i, v in Opt do
+					if not option or option == nil then
+						option = v
+					end
+				end
+				if option and option ~= nil then
+					_G.firstM1 = option
+					print(_G.firstM1)
+				else
+					warn(option)
+				end
+			end,
+		})
+
+		local secondM1Dropdown = Tab4:CreateDropdown({
+			Name = "Second M1",
+			Options = {"The Strongest Hero", "Hero Hunter", "Destructive Cyborg", "Deadly Ninja", "Brutal Demon", "Blade Master", "Wild Psychic", "Martial Artist", "Tech Prodigy", "KJ"},
+			CurrentOption = {"The Strongest Hero"},
+			MultipleOptions = false,
+			Flag = "secondM1Dropdown", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Opt)
+				local option = nil
+				for i, v in Opt do
+					if not option or option == nil then
+						option = v
+					end
+				end
+				if option and option ~= nil then
+					_G.secondM1 = option
+					print(_G.secondM1)
+				else
+					warn(option)
+				end
+			end,
+		})
+
+		local thirdM1Dropdown = Tab4:CreateDropdown({
+			Name = "Third M1",
+			Options = {"The Strongest Hero", "Hero Hunter", "Destructive Cyborg", "Deadly Ninja", "Brutal Demon", "Blade Master", "Wild Psychic", "Martial Artist", "Tech Prodigy", "KJ"},
+			CurrentOption = {"The Strongest Hero"},
+			MultipleOptions = false,
+			Flag = "thirdM1Dropdown", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Opt)
+				local option = nil
+				for i, v in Opt do
+					if not option or option == nil then
+						option = v
+					end
+				end
+				if option and option ~= nil then
+					_G.thirdM1 = option
+					print(_G.thirdM1)
+				else
+					warn(option)
+				end
+			end,
+		})
+
+		local fourthM1Dropdown = Tab4:CreateDropdown({
+			Name = "Fourt M1",
+			Options = {"The Strongest Hero", "Hero Hunter", "Destructive Cyborg", "Deadly Ninja", "Brutal Demon", "Blade Master", "Wild Psychic", "Martial Artist", "Tech Prodigy", "KJ"},
+			CurrentOption = {"The Strongest Hero"},
+			MultipleOptions = false,
+			Flag = "thirdM1Dropdown", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Opt)
+				local option = nil
+				for i, v in Opt do
+					if not option or option == nil then
+						option = v
+					end
+				end
+				if option and option ~= nil then
+					_G.fourthM1 = option
+					print(_G.fourthM1)
+				else
+					warn(option)
+				end
+			end,
+		})
+
+		local customM1sToggle = Tab4:CreateToggle({
+			Name = "Apply Custom M1s",
+			CurrentValue = false,
+			Flag = "customM1sToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Value)
+				print(Value)
+				_G.M1sActivated = Value
+			end,
+		})
+
+	end
+
+	local function setupTab5()
+		local MapCenter = Tab5:CreateButton({
 			Name = "Map Center",
 			Callback = function()
 				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(149, 440, 29)
 			end,
 		})
 
-		local voidPlate = Tab4:CreateButton({
+		local voidPlate = Tab5:CreateButton({
 			Name = "Void Platform",
 			Callback = function()
 				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(0, -493, 0)
 			end,
 		})
 
-		local DeathCounterRoom = Tab4:CreateButton({
+		local DeathCounterRoom = Tab5:CreateButton({
 			Name = "Death Counter Room",
 			Callback = function()
 				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-66, 30, 20356)
 			end,
 		})
 
-		local AtomicSlashRoom = Tab4:CreateButton({
+		local AtomicSlashRoom = Tab5:CreateButton({
 			Name = "Atomic Slash Room",
 			Callback = function()
 				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1050, 140, 23010)
 			end,
 		})
 
-		local UpperBaseplate = Tab4:CreateButton({
+		local UpperBaseplate = Tab5:CreateButton({
 			Name = "Upper Baseplate",
 			Callback = function()
 				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1060, 405, 22887)
 			end,
 		})
 
-		local LowerBaseplate = Tab4:CreateButton({
+		local LowerBaseplate = Tab5:CreateButton({
 			Name = "Lower Baseplate",
 			Callback = function()
 				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1060, 20, 22887)
 			end,
 		})
 
-		local weakestDummy = Tab4:CreateButton({
+		local weakestDummy = Tab5:CreateButton({
 			Name = "Weakest Dummy",
 			Callback = function()
 				localPlayer.Character.HumanoidRootPart.CFrame = workspace.Live["Weakest Dummy"].HumanoidRootPart.CFrame
@@ -546,13 +796,47 @@ local function setupUI()
 
 	end
 
+	local function setupTab6()
+		local rejoinButton = Tab6:CreateButton({
+			Name = "Rejoin Current Server",
+			Callback = function()
+				local Rejoin = coroutine.create(function()
+					local Success, ErrorMessage = pcall(function()
+						TeleportService:Teleport(game.PlaceId, localPlayer)
+					end)
+
+					if ErrorMessage and not Success then
+						warn(ErrorMessage)
+					end
+				end)
+				coroutine.resume(Rejoin)
+			end,
+		})
+	end
+
 	setupTab()
 	setupTab2()
 	setupTab3()
 	setupTab4()
+	setupTab5()
+	setupTab6()
 end
 setupUI()
 
+
+local function geyPlayingAnims()
+	local anims = {}
+	local humanoid = localPlayer.Character:FindFirstChildOfClass("Humanoid")
+	if humanoid then
+		for _, v in pairs(humanoid:GetPlayingAnimationTracks()) do
+			if v.Animation then
+				table.insert(anims, v.Animation)
+			end
+		end
+		return anims
+	end
+	return {}
+end
 
 local function getPlayingAnim(animId)
 	if not animId then return end
@@ -596,7 +880,7 @@ local function onCharAdded(char)
 	char:WaitForChild("Humanoid"):GetPropertyChangedSignal("Health"):Connect(function()
 		if not char:FindFirstChild("HumanoidRootPart") then return end
 		if not _G.killactivated or _G.killactivated == false then return end
-		if math.floor(char.Humanoid.Health) > _G.killStealProp and (math.floor(char.Humanoid.Health) ~= 0 or math.floor(char.Humanoid.Health) ~= 1) then return end
+		if math.floor(char.Humanoid.Health) >= _G.killStealProp and (math.floor(char.Humanoid.Health) ~= 0 or math.floor(char.Humanoid.Health) ~= 1) then return end
 		if _G.killSafeSelf == true and localPlayer.Character.Humanoid.Health <= _G.killSafeProp then return end
 		if _G.killKilling == true then return end
 		if _G.killChargeUp == true then return end
@@ -988,10 +1272,12 @@ end
 
 local function hlChar(character)
 	if not character then return end
-
 	if character:IsA("Player") then character = character.Character end
 
+	local player = Players:GetPlayerFromCharacter(character)
 	local highlight = nil
+
+	if not player then return end
 
 	if not character:FindFirstChild("UltEsp") then
 		highlight = Instance.new("Highlight", character)
@@ -1007,6 +1293,10 @@ local function hlChar(character)
 	end
 
 	if not highlight then return end
+
+	player.Backpack.ChildAdded:Connect(function(child)
+		print("add", child.Name)
+	end)
 end
 
 
@@ -1119,8 +1409,10 @@ local function tatsuUlt()
 	local chars = {}
 	for i, v in pairs(Players:GetPlayers()) do
 		if v and v.Character then
-			print(v.Name)
-			table.insert(chars, v.Character)
+			if v ~= localPlayer then
+				print(v.Name)
+				table.insert(chars, v.Character)
+			end
 		end
 	end
 
@@ -1132,7 +1424,7 @@ local function tatsuUlt()
 		for i, v in pairs(chars) do
 			if localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("HumanoidRootPart") then
 				localPlayer.Character:FindFirstChild("HumanoidRootPart").CFrame = v:FindFirstChild("HumanoidRootPart").CFrame
-				task.wait(0.12)
+				task.wait(0.15)
 			end
 		end
 
@@ -1168,6 +1460,9 @@ end
 local function target()
 	if _G.targetActivated == false then return end
 	if _G.targetTarget == nil then return end
+	if not _G.targetTarget.Character then return end
+	if not _G.targetTarget.Character.Humanoid then return end
+	if _G.targetTarget.Character.Humanoid.Health == 0 or _G.targetTarget.Character.Humanoid.Health == 1 then return end
 	print("target", _G.targetTarget.Name)
 
 	local player = _G.targetTarget
@@ -1202,6 +1497,51 @@ local function target()
 	end
 end
 
+local function autoGetIceBoss(object)
+	if _G.autoGetIceBoss == false then return end
+
+	if object.Name == "Frozen Lock" and object.Parent == workspace.Thrown then
+		task.wait(3)
+		repeat
+			localPlayer.Character:MoveTo(object["Root"].Position)    
+		until task.wait(0.5) and localPlayer.Character:GetAttribute("IceBoss") == true
+	end
+end
+
+local function snowballBooster()
+	if _G.snowballBooster == false then return end
+	if _G.snowballBoosterNeedTp == true then return end
+	local nearestPlayer = nil
+	local nearestMagnutide = 9999
+	local boosterDistance = 50
+
+	for i, player in pairs(Players:GetPlayers()) do
+		if player ~= localPlayer and player.Character.Humanoid and localPlayer.Character.Humanoid then
+			if (player.Character.Humanoid.Health ~= 0 and player.Character.Humanoid.Health ~= 1) and (localPlayer.Character.Humanoid.Health ~= 0 and localPlayer.Character.Humanoid.Health ~= 1) then
+				local distance = math.floor((player.Character.HumanoidRootPart.Position - localPlayer.Character.HumanoidRootPart.Position).Magnitude)
+
+				if distance <= boosterDistance then
+					if distance < nearestMagnutide then
+						nearestPlayer = player
+						nearestMagnutide = distance
+					else
+						warn("Ez bozo", distance, nearestMagnutide)
+					end
+				end
+			end
+		end
+	end
+
+	if nearestPlayer and nearestMagnutide then
+		print(nearestPlayer, nearestMagnutide)
+		_G.snowballPlayer = nearestPlayer
+		_G.snowballBoosterNeedTp = true
+		task.wait(2.5)
+		_G.snowballBoosterNeedTp = false
+		_G.snowballPlayer = nil
+	end
+end
+
 
 RunService.Heartbeat:Connect(function()
 	if localPlayer.Character then
@@ -1220,6 +1560,17 @@ RunService.Heartbeat:Connect(function()
 
 			if _G.killActivated == true then
 				_G.killActivated = false
+			end
+
+			if _G.targetActivated == true then
+				_G.targetActivated = false
+				_G.targetNeedTp = false
+				_G.targetTarget = ""
+			end
+
+			if _G.snowballBooster == true then
+				_G.snowballBooster = false
+				_G.snowballPlayer = nil
 			end
 		end
 
@@ -1248,7 +1599,7 @@ RunService.Heartbeat:Connect(function()
 							if _G.targetSafeQuotes == 1 then
 								localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -490, 1)
 							else
-								localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -491, 1) * CFrame.Angles(90, 0, 0)
+								localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -492, 1) * CFrame.Angles(90, 0, 0)
 							end
 						end
 					else
@@ -1258,10 +1609,20 @@ RunService.Heartbeat:Connect(function()
 				end
 			end
 		end
+
+		if _G.snowballBoosterNeedTp == true and _G.snowballPlayer ~= nil then
+			print(_G.snowballPlayer)
+			local cf = _G.snowballPlayer.Character.HumanoidRootPart.CFrame
+			localPlayer.Character.HumanoidRootPart.CFrame = cf - (cf.LookVector * 3.5) + _G.targetTarget.Character.Humanoid.MoveDirection
+		end
 	end
 
 	if localPlayer.Character then
+		local humanoid = localPlayer.Character:FindFirstChildOfClass("Humanoid")
+
+		local allAnims = geyPlayingAnims()
 		local isDeathCountered = getPlayingAnim("11343250001")
+		local isSnowball = getPlayingAnim("128022763591042")
 		local tatsuUltAct = getPlayingAnim("16734584478")
 		_G.isDeath = isDeathCountered
 
@@ -1283,6 +1644,37 @@ RunService.Heartbeat:Connect(function()
 		if tatsuUltAct == true and _G.tatsuUltActivated == true and _G.tatsuUltWorking == false then
 			print("tATSU ULT")
 			tatsuUlt()
+		end
+
+		if isSnowball == true and _G.snowballBooster == true then
+			snowballBooster()
+		end
+
+		if _G.M1sActivated == true then
+			local anim = false
+			for i, v in pairs(allAnims) do
+				local animId = v.AnimationId
+				local split = string.split(tostring(animId), "rbxassetid://")
+				animId = split[2]
+				if anim == false or anim == nil then
+					for _, c in pairs(M1sAnimations) do
+						if anim == false or anim == nil then
+							if animId == c then
+								anim = v
+							end
+						end
+					end
+				end
+			end
+			if anim ~= false and anim ~= nil then
+				print("has")
+				anim:Stop()
+				local anim2 = Instance.new("Animation", game.Players.LocalPlayer.Character)
+				anim2.AnimationId = ""
+				local anim3 = humanoid:LoadAnimation(anim2)
+				anim3:Play()
+				anim2:Destroy()
+			end
 		end
 	end
 
@@ -1311,42 +1703,30 @@ RunService.Heartbeat:Connect(function()
 end)
 
 local function onPlrAdded(plr)
+	plr.CharacterAdded:Connect(hlChar)
+
 	if _G.killWhiteList == true then
 		if plr:IsFriendsWith(localPlayer.UserId) then
 			return
 		end
 	end
 
-	local playersTable = {}
-	for i, v in pairs(Players:GetPlayers()) do
-		if v ~= localPlayer then
-			table.insert(playersTable, v.Name)
-		end
-	end
-	targetDropdown:Set(playersTable)
-
-
 	plr.CharacterAdded:Connect(onCharAdded)
 	if plr.Character then
 		onCharAdded(plr.Character)
+		hlChar(plr.Character)
 	end
-end
-
-local function onPlrRemoved(plr)
-	local playersTable = {}
-	for i, v in pairs(Players:GetPlayers()) do
-		if v ~= localPlayer then
-			table.insert(playersTable, v.Name)
-		end
-	end
-	targetDropdown:Set(playersTable)
 end
 
 for _, plr in Players:GetPlayers() do
+	hlChar(plr.Character)
 	onPlrAdded(plr)
 end
+for _, part in workspace.Thrown:GetChildren() do
+	autoGetIceBoss(part)
+end
 Players.PlayerAdded:Connect(onPlrAdded)
-Players.PlayerRemoving:Connect(onPlrRemoved)
+workspace.Thrown.ChildAdded:Connect(autoGetIceBoss)
 
 Rayfield:Notify({
 	Title = "Tsb Script",
@@ -1354,4 +1734,3 @@ Rayfield:Notify({
 	Duration = 6.5,
 	Image = 4483362458,
 })
-
