@@ -5,6 +5,7 @@ local Players = game:GetService("Players")
 
 local localPlayer = Players.LocalPlayer
 local playerGui = localPlayer.PlayerGui
+local mouse = localPlayer:GetMouse()
 local camera = workspace.CurrentCamera
 
 local Rayfield = loadstring(game:HttpGet("https://github.com/zedikik/RayField/blob/main/RayField.lua", true))()
@@ -112,8 +113,8 @@ if not _G.killWorkChars then
 	_G.targetTarget = nil
 	_G.targetQuotes = 1 -- 1 is basic target, 2 is smart target (tp only if has skills)
 	_G.targetSafeActivated = true
-	_G.targetSafeProp = 25
-	_G.targetSafeQuotes = 1 -- 1 is basic (15hp prop void); 2 is absolute safe (15hp prop void * CFrame.Angles(0, 90, 0)
+	_G.targetSafeProp = 30
+	_G.targetSafeQuotes = 2 -- 1 is basic (15hp prop void); 2 is absolute safe (15hp prop void * CFrame.Angles(0, 90, 0)
 
 	_G.autoGetIceBoss = false
 
@@ -125,9 +126,11 @@ if not _G.killWorkChars then
 	_G.thirdM1 = "The Strongest Hero" -- The Strongest Hero  is default
 	_G.fourthM1 = "The Strongest Hero" -- The Strongest Hero  is default
 	_G.M1sActivated = false
-	
+
 	_G.walkSpeed = 16
 	_G.jumpPower = 50
+	_G.walkActivated = false
+	_G.jumpActivated = false
 end
 
 if not workspace:FindFirstChild("VoidPlate") then
@@ -164,7 +167,7 @@ local Window = Rayfield:CreateWindow({
 		FileName = "TSBScrKey", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
 		SaveKey = true, -- The user's key will be saved, but if you change the key, they will be unable to use your script
 		GrabKeyFromSite = false, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
-		Key = {"Skuff", "skuff", "SKUFF"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
+		Key = {"Skuff", "skuff", "SKUFF", "skuf", "SKUF"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
 	}
 })
 
@@ -177,7 +180,7 @@ local Tab6 = Window:CreateTab("Teleports", "rewind")
 local Tab7 = Window:CreateTab("Server", "rewind")
 
 local MainSection = Tab:CreateSection("Main")
-local Section = Tab:CreateSection("Main")
+local playerSection = Tab2:CreateSection("Player")
 local vilualSection = Tab3:CreateSection("Visuals")
 local exploitSection = Tab3:CreateSection("Exploits")
 local locationsSection = Tab5:CreateSection("Locations")
@@ -219,7 +222,7 @@ local function setupUI()
 		})
 		local tpAllBind = Tab:CreateKeybind({
 			Name = "Bring All (Teleport to all players on map)",
-			CurrentKeybind = "T",
+			CurrentKeybind = "Z",
 			HoldToInteract = false,
 			Flag = "bringAllBind", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
 			Callback = function(Keybind)
@@ -230,8 +233,10 @@ local function setupUI()
 				for i, v in pairs(Players:GetPlayers()) do
 					if v and v.Character then
 						if v ~= localPlayer then
-							print(v.Name)
-							table.insert(chars, v.Character)
+							if not v:IsFriendsWith(localPlayer.UserId) then
+								print(v.Name)
+								table.insert(chars, v.Character)
+							end
 						end
 					end
 				end
@@ -246,19 +251,49 @@ local function setupUI()
 				localPlayer.Character:FindFirstChild("HumanoidRootPart").CFrame = oldCFrame
 			end,
 		})
+		local tpBind = Tab:CreateKeybind({
+			Name = "TP Bind (Teleport to Mouse Position)",
+			CurrentKeybind = "T",
+			HoldToInteract = false,
+			Flag = "tpBind", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Keybind)
+				print(Keybind)
+				local character = localPlayer.Character
+				local rootPart = character:FindFirstChild("HumanoidRootPart")
+				
+				if character and rootPart then
+					 
+				end
+			end,
+		})
 	end
-	
+
 	local function setupTab2()
-		local WalkSpeedSlider = Tab2:CreateSlider({
+		local walkSpeedSlider = Tab2:CreateSlider({
 			Name = "WalkSpeed Slider",
 			Range = {0, 1500},
 			Increment = 1,
 			Suffix = "Speed",
 			CurrentValue = 16,
-			Flag = "targetSafeProp", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Flag = "walkSpeedSlider", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
 			Callback = function(Value)
 				print(Value)
-				_G.targetSafeProp = Value
+				_G.walkSpeed = Value
+				_G.walkActivated = true
+			end,
+		})
+		
+		local jumpPowerSlider = Tab2:CreateSlider({
+			Name = "WalkSpeed Slider",
+			Range = {0, 2500},
+			Increment = 1,
+			Suffix = "Power",
+			CurrentValue = 50,
+			Flag = "jumpPowerSlider", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Value)
+				print(Value)
+				_G.jumpPower = Value
+				_G.jumpActivated = true
 			end,
 		})
 	end
@@ -330,7 +365,7 @@ local function setupUI()
 
 	local function setupTab4()
 		local otherSection = Tab4:CreateSection("Other Exploits")
-		
+
 		local snowballBoosterToggle = Tab4:CreateToggle({
 			Name = "Snowball Booster",
 			CurrentValue = false,
@@ -571,7 +606,7 @@ local function setupUI()
 			Range = {1, 100},
 			Increment = 1,
 			Suffix = "Health",
-			CurrentValue = 25,
+			CurrentValue = 30,
 			Flag = "targetSafeProp", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
 			Callback = function(Value)
 				print(Value)
@@ -581,7 +616,7 @@ local function setupUI()
 
 		local targetSafeModeQuotesDropdown = Tab4:CreateDropdown({
 			Name = "Target Safe Mode Quotes",
-			Options = {"Basic (Tp to invisible platform if u has lower 15hp)", "Smart (Tp to invisible platform with angles)"},
+			Options = {"Basic (Tp to invisible platform)", "Smart (Tp to invisible platform with angles)"},
 			CurrentOption = {"Smart (Tp to invisible platform with angles)"},
 			MultipleOptions = false,
 			Flag = "targetSafeQuotesDropdown", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
@@ -678,9 +713,9 @@ local function setupUI()
 				_G.autoGetIceBoss = Value
 			end,
 		})
-		
+
 		local snowSection = Tab5:CreateSection("Snow Section")
-		
+
 		local firstM1Dropdown = Tab5:CreateDropdown({
 			Name = "First M1",
 			Options = {"The Strongest Hero", "Hero Hunter", "Destructive Cyborg", "Deadly Ninja", "Brutal Demon", "Blade Master", "Wild Psychic", "Martial Artist", "Tech Prodigy", "KJ"},
@@ -788,10 +823,30 @@ local function setupUI()
 				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(149, 440, 29)
 			end,
 		})
+		local mapCenterBind = Tab6:CreateKeybind({
+			Name = "Map Center TP Bind",
+			CurrentKeybind = "",
+			HoldToInteract = false,
+			Flag = "mapCenterBind", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Keybind)
+				print(Keybind)
+				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(149, 440, 29)
+			end,
+		})
 
 		local voidPlate = Tab6:CreateButton({
 			Name = "Void Platform",
 			Callback = function()
+				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(0, -493, 0)
+			end,
+		})
+		local voidPlatBind = Tab6:CreateKeybind({
+			Name = "Void Platform TP Bind",
+			CurrentKeybind = "",
+			HoldToInteract = false,
+			Flag = "voidPlatBind", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Keybind)
+				print(Keybind)
 				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(0, -493, 0)
 			end,
 		})
@@ -802,10 +857,30 @@ local function setupUI()
 				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-66, 30, 20356)
 			end,
 		})
+		local deathRoomBind = Tab6:CreateKeybind({
+			Name = "Death Counter Room TP Bind",
+			CurrentKeybind = "",
+			HoldToInteract = false,
+			Flag = "deathRoomBind", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Keybind)
+				print(Keybind)
+				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-66, 30, 20356)
+			end,
+		})
 
 		local AtomicSlashRoom = Tab6:CreateButton({
 			Name = "Atomic Slash Room",
 			Callback = function()
+				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1050, 140, 23010)
+			end,
+		})
+		local atomicSlashBind = Tab6:CreateKeybind({
+			Name = "Atomic Slash Room TP Bind",
+			CurrentKeybind = "",
+			HoldToInteract = false,
+			Flag = "atomicSlashBind", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Keybind)
+				print(Keybind)
 				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1050, 140, 23010)
 			end,
 		})
@@ -816,10 +891,30 @@ local function setupUI()
 				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1060, 405, 22887)
 			end,
 		})
+		local upperBaseplateBind = Tab6:CreateKeybind({
+			Name = "Upper Baseplate TP Bind",
+			CurrentKeybind = "",
+			HoldToInteract = false,
+			Flag = "upperBaseplateBind", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Keybind)
+				print(Keybind)
+				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1060, 405, 22887)
+			end,
+		})
 
 		local LowerBaseplate = Tab6:CreateButton({
 			Name = "Lower Baseplate",
 			Callback = function()
+				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1060, 20, 22887)
+			end,
+		})
+		local lowerBaseplateBind = Tab6:CreateKeybind({
+			Name = "Lower Baseplate TP Bind",
+			CurrentKeybind = "",
+			HoldToInteract = false,
+			Flag = "lowerBaseplateBind", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Keybind)
+				print(Keybind)
 				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1060, 20, 22887)
 			end,
 		})
@@ -830,7 +925,19 @@ local function setupUI()
 				localPlayer.Character.HumanoidRootPart.CFrame = workspace.Live["Weakest Dummy"].HumanoidRootPart.CFrame
 			end,
 		})
-
+		local weakestDummyBind = Tab6:CreateKeybind({
+			Name = "Weakest Dummy TP Bind",
+			CurrentKeybind = "",
+			HoldToInteract = false,
+			Flag = "weakestDummyBind", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Keybind)
+				print(Keybind)
+				localPlayer.Character.HumanoidRootPart.CFrame = workspace.Live["Weakest Dummy"].HumanoidRootPart.CFrame
+			end,
+		})
+		
+		local playersSSection = Tab6:CreateSection("Players Teleports (Cooming Soon)")
+		
 	end
 
 	local function setupTab7()
@@ -1330,7 +1437,7 @@ local function hlChar(character)
 	end
 
 	if not highlight then return end
-	
+
 	local ultMoves = {
 		"Death Counter",
 		"Table Flip",
@@ -1340,12 +1447,12 @@ local function hlChar(character)
 		"",
 		"",
 		"",
-		
+
 		"",
 		"",
 		"",
 		"",
-		
+
 		"",
 		"",
 		"",
@@ -1643,10 +1750,23 @@ RunService.Heartbeat:Connect(function()
 			if _G.killActivated == true then
 				_G.killActivated = false
 			end
+			
+			if _G.voidNeedTp == true then
+				_G.voidNeedTp = false
+			end
+			
+			if _G.targetActivated == true then
+				_G.targetActivated = false
+				_G.targetNeedTp = false
+				_G.targetTarget = ""
+			end
 		end
 
 		if _G.voidNeedTp == true then
 			localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, 205, 1)
+			if _G.targetNeedTp == true then
+				_G.targetNeedTp = false
+			end
 		end
 
 		if _G.targetActivated == true then
@@ -1788,6 +1908,19 @@ for _, part in workspace.Thrown:GetChildren() do
 end
 Players.PlayerAdded:Connect(onPlrAdded)
 workspace.Thrown.ChildAdded:Connect(autoGetIceBoss)
+
+localPlayer.CharacterAdded:Connect(function(character)
+	local humanoid = character:FindFirstChild("Humanoid")
+	humanoid.Changed:Connect(function()
+		if _G.walkActivated == true then
+			humanoid.WalkSpeed = _G.walkSpeed
+		end
+		
+		if _G.jumpActivated == true then
+			humanoid.JumpPower = _G.jumpPower
+		end
+	end)
+end)
 
 Rayfield:Notify({
 	Title = "Tsb Script",
