@@ -1837,7 +1837,6 @@ RunService.Heartbeat:Connect(function()
 			local animM1 = 1
 			for i, v in pairs(allAnims) do
 				local animId = v.AnimationId
-				v:Stop()
 				local split = string.split(tostring(animId), "rbxassetid://")
 				animId = split[2]
 				if anim == false or anim == nil then
@@ -1860,8 +1859,6 @@ RunService.Heartbeat:Connect(function()
 				end
 			end
 			if (anim ~= false and anim ~= nil) and animM1 ~= "" then
-				print(anim, anim.Parent)
-				anim:Stop()
 				local needM1
 				local needAnim
 				if animM1 == 1 then
@@ -1941,6 +1938,12 @@ RunService.Heartbeat:Connect(function()
 					end
 					if needAnim and needAnim ~= "" then
 						print("click")
+						for _, animTrack in pairs(humanoid:GetPlayingAnimationTracks()) do
+							if animTrack.AnimationId == anim.AnimationId then
+								print("stop")
+								animTrack:Stop()
+							end
+						end
 						local rbxAsset = "rbxassetid://"
 						local anim2 = Instance.new("Animation", localPlayer.Character)
 						anim2.AnimationId = rbxAsset..needAnim
