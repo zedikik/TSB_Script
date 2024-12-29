@@ -7,7 +7,8 @@ local localPlayer = Players.LocalPlayer
 local playerGui = localPlayer.PlayerGui
 local camera = workspace.CurrentCamera
 
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Rayfield = loadstring(game:HttpGet("https://github.com/zedikik/RayField/blob/main/RayField.lua", true))()
+if not Rayfield then return end
 Rayfield:Notify({
 	Title = "Tsb Script",
 	Content = "Loading",
@@ -94,6 +95,8 @@ if not _G.killWorkChars then
 	_G.voidNeedTp = false
 	_G.voidKilling = false 
 	_G.voidKillQuotes = 2 -- wait time (1 = default time; 2 = smart wait)
+	_G.voidKillPunishQuotes = 1 -- 💀💀💀 (1 is teleport to teleports; 2 is absolute dead)
+	_G.voidKillPunishTpLocation = 1 -- 1 is Death Counter room, 2 is Atomic room, 3 is Upper Baseplate, 4 is Lower Baseplate
 
 	_G.hitboxColor = Color3.new(255, 0, 0)
 
@@ -122,6 +125,9 @@ if not _G.killWorkChars then
 	_G.thirdM1 = "The Strongest Hero" -- The Strongest Hero  is default
 	_G.fourthM1 = "The Strongest Hero" -- The Strongest Hero  is default
 	_G.M1sActivated = false
+	
+	_G.walkSpeed = 16
+	_G.jumpPower = 50
 end
 
 if not workspace:FindFirstChild("VoidPlate") then
@@ -163,16 +169,17 @@ local Window = Rayfield:CreateWindow({
 })
 
 local Tab = Window:CreateTab("Main", "rewind")
-local Tab2 = Window:CreateTab("Visuals", "rewind")
-local Tab3 = Window:CreateTab("Attacks", "rewind")
-local Tab4 = Window:CreateTab("Moveset", "rewind")
-local Tab5 = Window:CreateTab("Teleports", "rewind")
-local Tab6 = Window:CreateTab("Server", "rewind")
+local Tab2 = Window:CreateTab("Player", "rewind")
+local Tab3 = Window:CreateTab("Visuals", "rewind")
+local Tab4 = Window:CreateTab("Attacks", "rewind")
+local Tab5 = Window:CreateTab("Moveset", "rewind")
+local Tab6 = Window:CreateTab("Teleports", "rewind")
+local Tab7 = Window:CreateTab("Server", "rewind")
 
 local MainSection = Tab:CreateSection("Main")
-local vilualSection = Tab2:CreateSection("Visuals")
+local Section = Tab:CreateSection("Main")
+local vilualSection = Tab3:CreateSection("Visuals")
 local exploitSection = Tab3:CreateSection("Exploits")
-local m1sSection = Tab4:CreateSection("Custom M1s")
 local locationsSection = Tab5:CreateSection("Locations")
 
 local targetDropdown
@@ -240,33 +247,56 @@ local function setupUI()
 			end,
 		})
 	end
-
+	
 	local function setupTab2()
-		local hitboxToggle = Tab2:CreateToggle({
+		local WalkSpeedSlider = Tab2:CreateSlider({
+			Name = "WalkSpeed Slider",
+			Range = {0, 1500},
+			Increment = 1,
+			Suffix = "Speed",
+			CurrentValue = 16,
+			Flag = "targetSafeProp", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Value)
+				print(Value)
+				_G.targetSafeProp = Value
+			end,
+		})
+	end
+
+	local function setupTab3()
+		local hitboxToggle = Tab3:CreateToggle({
 			Name = "Show Hitboxes",
 			CurrentValue = false,
 			Flag = "hitboxToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
 			Callback = function(Value)
 				print(Value)
 				if Value == true then
-					for i, v in pairs(localPlayer.Character:GetChildren()) do
-						if string.match(string.lower(v.Name), "hitbox") then
-							v.Transparency = 0
-							v.Color = _G.hitboxColor
+					for i, v in pairs(Players:GetPlayers()) do
+						if v.Character then
+							for i, c in pairs(v.Character:GetChildren()) do
+								if string.match(string.lower(c.Name), "hitbox") then
+									v.Transparency = 0
+									v.Color = _G.hitboxColor
+								end
+							end
 						end
 					end
 				else
-					for i, v in pairs(localPlayer.Character:GetChildren()) do
-						if string.match(string.lower(v.Name), "hitbox") then
-							v.Transparency = 1
-							v.Color = Color3.fromRGB(193, 193, 193) -- default color
+					for i, v in pairs(Players:GetPlayers()) do
+						if v.Character then
+							for i, c in pairs(v.Character:GetChildren()) do
+								if string.match(string.lower(c.Name), "hitbox") then
+									v.Transparency = 1
+									v.Color = Color3.fromRGB(193, 193, 193)
+								end
+							end
 						end
 					end
 				end
 			end,
 		})
 
-		local hitboxColor = Tab2:CreateColorPicker({
+		local hitboxColor = Tab3:CreateColorPicker({
 			Name = "Hitbox Color",
 			Color = Color3.fromRGB(255,0,0),
 			Flag = "HitboxColor", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
@@ -276,7 +306,7 @@ local function setupUI()
 				print(Value, Color3.new(Value))
 
 				local C3 = Color3.new(0, 0, 0)
-				local r, g, b = math.round(tonumber(split[1])*255), math.round(split[2]*255), math.round(split[3]*255)
+				local r, g, b = math.round(tonumber(split[1])*255), math.round(tonumber(split[2])*255), math.round(tonumber(split[3])*255)
 				color = Color3.new(r,g,b)
 
 				if color then
@@ -285,30 +315,23 @@ local function setupUI()
 					_G.hitboxColor = Color3.fromRGB(255,0,0)
 				end
 
-				for i, v in pairs(localPlayer.Character:GetChildren()) do
-					if string.match(string.lower(v.Name), "hitbox") then
-						v.Transparency = 0
-						v.Color = _G.hitboxColor
+				for i, v in pairs(Players:GetPlayers()) do
+					if v.Character then
+						for i, c in pairs(v.Character:GetChildren()) do
+							if string.match(string.lower(c.Name), "hitbox") then
+								v.Color = _G.hitboxColor
+							end
+						end
 					end
 				end
 			end
 		})
 	end
 
-	local function setupTab3()
-		local snowSection = Tab3:CreateSection("Snow Section")
-
-		local autoGetIceBossToggle = Tab3:CreateToggle({
-			Name = "Auto Get Frozen Soul",
-			CurrentValue = false,
-			Flag = "AGIBToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-			Callback = function(Value)
-				print(Value)
-				_G.autoGetIceBoss = Value
-			end,
-		})
-
-		local snowballBoosterToggle = Tab3:CreateToggle({
+	local function setupTab4()
+		local otherSection = Tab4:CreateSection("Other Exploits")
+		
+		local snowballBoosterToggle = Tab4:CreateToggle({
 			Name = "Snowball Booster",
 			CurrentValue = false,
 			Flag = "SBToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
@@ -318,9 +341,9 @@ local function setupUI()
 			end,
 		})
 
-		local otherSection = Tab3:CreateSection("Other Exploits")
+		local otherSection = Tab4:CreateSection("Main Exploits")
 
-		local antiDeathCounterToggle = Tab3:CreateToggle({
+		local antiDeathCounterToggle = Tab4:CreateToggle({
 			Name = "Anti Death Counter",
 			CurrentValue = false,
 			Flag = "ADCToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
@@ -330,7 +353,7 @@ local function setupUI()
 			end,
 		})
 
-		local deathCounterDropdown = Tab3:CreateDropdown({
+		local deathCounterDropdown = Tab4:CreateDropdown({
 			Name = "Anti Death Counter Quotes",
 			Options = {"Void Kill ur Enemy (Bypass Death Counter)", "Punish ur Enemy (teleport him to selected place)"},
 			CurrentOption = {"Void Kill ur Enemy (Bypass Death Counter)"},
@@ -355,7 +378,7 @@ local function setupUI()
 			end,
 		})
 
-		local deathPunishLocDropdown = Tab3:CreateDropdown({
+		local deathPunishLocDropdown = Tab4:CreateDropdown({
 			Name = "Anti Death Counter Punish Location",
 			Options = {"Death Counter Room", "Atomic Slash Room", "Upper Baseplate", "Lower Baseplate"},
 			CurrentOption = {"Death Counter Room"},
@@ -392,7 +415,7 @@ local function setupUI()
 		})
 
 
-		local autoVoidToggle = Tab3:CreateToggle({
+		local autoVoidToggle = Tab4:CreateToggle({
 			Name = "Auto Void Kill",
 			CurrentValue = false,
 			Flag = "AVToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
@@ -402,7 +425,7 @@ local function setupUI()
 			end,
 		})
 
-		local voidDropdown = Tab3:CreateDropdown({
+		local voidDropdown = Tab4:CreateDropdown({
 			Name = "Void Kill Quotes",
 			Options = {"1 (Default Wait Time)", "2 (Smart Wait Time)"},
 			CurrentOption = {"2 (Smart Wait Time)"},
@@ -429,10 +452,10 @@ local function setupUI()
 			end,
 		})
 
-		local bringSection = Tab3:CreateSection("Bring Exploit")
+		local bringSection = Tab4:CreateSection("Bring Exploit")
 
 
-		local tatsuBringToggle = Tab3:CreateToggle({
+		local tatsuBringToggle = Tab4:CreateToggle({
 			Name = "Tatsumaki Ult",
 			CurrentValue = false,
 			Flag = "tatsuUltToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
@@ -442,7 +465,7 @@ local function setupUI()
 			end,
 		})
 
-		local tatsuUltQuotesDropdown = Tab3:CreateDropdown({
+		local tatsuUltQuotesDropdown = Tab4:CreateDropdown({
 			Name = "Tatsumaki Ult Quotes",
 			Options = {"Bring All", "Void Kill all"},
 			CurrentOption = {"Void Kill all"},
@@ -469,10 +492,10 @@ local function setupUI()
 			end,
 		})
 
-		local targetSection = Tab3:CreateSection("Target Exploit")
+		local targetSection = Tab4:CreateSection("Target Exploit")
 
 
-		local targetToggle = Tab3:CreateToggle({
+		local targetToggle = Tab4:CreateToggle({
 			Name = "Target Toggle",
 			CurrentValue = false,
 			Flag = "targetToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
@@ -482,7 +505,7 @@ local function setupUI()
 			end,
 		})
 
-		local targetInput = Tab3:CreateInput({
+		local targetInput = Tab4:CreateInput({
 			Name = "Target Name (can be shorted) (if dropdown not working)",
 			CurrentValue = "",
 			PlaceholderText = "PlayerName",
@@ -505,7 +528,7 @@ local function setupUI()
 			end,
 		})
 
-		local targetQuotesDropdown = Tab3:CreateDropdown({
+		local targetQuotesDropdown = Tab4:CreateDropdown({
 			Name = "Target Mode Quotes",
 			Options = {"Basic (auto tp to Player)", "Smart (tp if u has a 1/2/3/4 skill)"},
 			CurrentOption = {"Basic (auto tp to Player)"},
@@ -533,7 +556,7 @@ local function setupUI()
 		})
 
 
-		local targetSafeModeToggle = Tab3:CreateToggle({
+		local targetSafeModeToggle = Tab4:CreateToggle({
 			Name = "Target Safe Mode",
 			CurrentValue = false,
 			Flag = "targetSafeModeToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
@@ -543,7 +566,7 @@ local function setupUI()
 			end,
 		})
 
-		local targetSafePropSlider = Tab3:CreateSlider({
+		local targetSafePropSlider = Tab4:CreateSlider({
 			Name = "Safe Prop",
 			Range = {1, 100},
 			Increment = 1,
@@ -556,7 +579,7 @@ local function setupUI()
 			end,
 		})
 
-		local targetSafeModeQuotesDropdown = Tab3:CreateDropdown({
+		local targetSafeModeQuotesDropdown = Tab4:CreateDropdown({
 			Name = "Target Safe Mode Quotes",
 			Options = {"Basic (Tp to invisible platform if u has lower 15hp)", "Smart (Tp to invisible platform with angles)"},
 			CurrentOption = {"Smart (Tp to invisible platform with angles)"},
@@ -583,10 +606,10 @@ local function setupUI()
 			end,
 		})
 
-		local killFarmSection = Tab3:CreateSection("Kills Farm (afk kill stealer)")
+		local killFarmSection = Tab4:CreateSection("Kills Farm (afk kill stealer)")
 
 
-		local killToggle = Tab3:CreateToggle({
+		local killToggle = Tab4:CreateToggle({
 			Name = "Toggle Kill Stealer",
 			CurrentValue = false,
 			Flag = "KillToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
@@ -596,7 +619,7 @@ local function setupUI()
 			end,
 		})
 
-		local killWhiteListToggle = Tab3:CreateToggle({
+		local killWhiteListToggle = Tab4:CreateToggle({
 			Name = "Whitelist (do not kill ur friends)",
 			CurrentValue = true,
 			Flag = "KillWhiteList", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
@@ -606,7 +629,7 @@ local function setupUI()
 			end,
 		})
 
-		local killSafeSelfToggle = Tab3:CreateToggle({
+		local killSafeSelfToggle = Tab4:CreateToggle({
 			Name = "Safe Self (Do not steal, if u has lower than Safe Prop hp)",
 			CurrentValue = true,
 			Flag = "KillSafeSelf", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
@@ -616,7 +639,7 @@ local function setupUI()
 			end,
 		})
 
-		local killSafePropSlider = Tab3:CreateSlider({
+		local killSafePropSlider = Tab4:CreateSlider({
 			Name = "Safe Prop",
 			Range = {0, 100},
 			Increment = 1,
@@ -629,7 +652,7 @@ local function setupUI()
 			end,
 		})
 
-		local killStealPropSlider = Tab3:CreateSlider({
+		local killStealPropSlider = Tab4:CreateSlider({
 			Name = "Steal Prop",
 			Range = {1, 100},
 			Increment = 1,
@@ -643,8 +666,22 @@ local function setupUI()
 		})
 	end
 
-	local function setupTab4()
-		local firstM1Dropdown = Tab4:CreateDropdown({
+	local function setupTab5()
+		local snowSection = Tab5:CreateSection("Snow Section")
+
+		local autoGetIceBossToggle = Tab5:CreateToggle({
+			Name = "Auto Get Frozen Soul",
+			CurrentValue = false,
+			Flag = "AGIBToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Value)
+				print(Value)
+				_G.autoGetIceBoss = Value
+			end,
+		})
+		
+		local snowSection = Tab5:CreateSection("Snow Section")
+		
+		local firstM1Dropdown = Tab5:CreateDropdown({
 			Name = "First M1",
 			Options = {"The Strongest Hero", "Hero Hunter", "Destructive Cyborg", "Deadly Ninja", "Brutal Demon", "Blade Master", "Wild Psychic", "Martial Artist", "Tech Prodigy", "KJ"},
 			CurrentOption = {"The Strongest Hero"},
@@ -666,7 +703,7 @@ local function setupUI()
 			end,
 		})
 
-		local secondM1Dropdown = Tab4:CreateDropdown({
+		local secondM1Dropdown = Tab5:CreateDropdown({
 			Name = "Second M1",
 			Options = {"The Strongest Hero", "Hero Hunter", "Destructive Cyborg", "Deadly Ninja", "Brutal Demon", "Blade Master", "Wild Psychic", "Martial Artist", "Tech Prodigy", "KJ"},
 			CurrentOption = {"The Strongest Hero"},
@@ -688,7 +725,7 @@ local function setupUI()
 			end,
 		})
 
-		local thirdM1Dropdown = Tab4:CreateDropdown({
+		local thirdM1Dropdown = Tab5:CreateDropdown({
 			Name = "Third M1",
 			Options = {"The Strongest Hero", "Hero Hunter", "Destructive Cyborg", "Deadly Ninja", "Brutal Demon", "Blade Master", "Wild Psychic", "Martial Artist", "Tech Prodigy", "KJ"},
 			CurrentOption = {"The Strongest Hero"},
@@ -710,7 +747,7 @@ local function setupUI()
 			end,
 		})
 
-		local fourthM1Dropdown = Tab4:CreateDropdown({
+		local fourthM1Dropdown = Tab5:CreateDropdown({
 			Name = "Fourt M1",
 			Options = {"The Strongest Hero", "Hero Hunter", "Destructive Cyborg", "Deadly Ninja", "Brutal Demon", "Blade Master", "Wild Psychic", "Martial Artist", "Tech Prodigy", "KJ"},
 			CurrentOption = {"The Strongest Hero"},
@@ -732,7 +769,7 @@ local function setupUI()
 			end,
 		})
 
-		local customM1sToggle = Tab4:CreateToggle({
+		local customM1sToggle = Tab5:CreateToggle({
 			Name = "Apply Custom M1s",
 			CurrentValue = false,
 			Flag = "customM1sToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
@@ -744,50 +781,50 @@ local function setupUI()
 
 	end
 
-	local function setupTab5()
-		local MapCenter = Tab5:CreateButton({
+	local function setupTab6()
+		local MapCenter = Tab6:CreateButton({
 			Name = "Map Center",
 			Callback = function()
 				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(149, 440, 29)
 			end,
 		})
 
-		local voidPlate = Tab5:CreateButton({
+		local voidPlate = Tab6:CreateButton({
 			Name = "Void Platform",
 			Callback = function()
 				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(0, -493, 0)
 			end,
 		})
 
-		local DeathCounterRoom = Tab5:CreateButton({
+		local DeathCounterRoom = Tab6:CreateButton({
 			Name = "Death Counter Room",
 			Callback = function()
 				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-66, 30, 20356)
 			end,
 		})
 
-		local AtomicSlashRoom = Tab5:CreateButton({
+		local AtomicSlashRoom = Tab6:CreateButton({
 			Name = "Atomic Slash Room",
 			Callback = function()
 				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1050, 140, 23010)
 			end,
 		})
 
-		local UpperBaseplate = Tab5:CreateButton({
+		local UpperBaseplate = Tab6:CreateButton({
 			Name = "Upper Baseplate",
 			Callback = function()
 				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1060, 405, 22887)
 			end,
 		})
 
-		local LowerBaseplate = Tab5:CreateButton({
+		local LowerBaseplate = Tab6:CreateButton({
 			Name = "Lower Baseplate",
 			Callback = function()
 				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1060, 20, 22887)
 			end,
 		})
 
-		local weakestDummy = Tab5:CreateButton({
+		local weakestDummy = Tab6:CreateButton({
 			Name = "Weakest Dummy",
 			Callback = function()
 				localPlayer.Character.HumanoidRootPart.CFrame = workspace.Live["Weakest Dummy"].HumanoidRootPart.CFrame
@@ -796,8 +833,8 @@ local function setupUI()
 
 	end
 
-	local function setupTab6()
-		local rejoinButton = Tab6:CreateButton({
+	local function setupTab7()
+		local rejoinButton = Tab7:CreateButton({
 			Name = "Rejoin Current Server",
 			Callback = function()
 				local Rejoin = coroutine.create(function()
@@ -818,8 +855,9 @@ local function setupUI()
 	setupTab2()
 	setupTab3()
 	setupTab4()
-	setupTab5()
 	setupTab6()
+	setupTab6()
+	setupTab7()
 end
 setupUI()
 
@@ -833,9 +871,8 @@ local function geyPlayingAnims()
 				table.insert(anims, v.Animation)
 			end
 		end
-		return anims
 	end
-	return {}
+	return anims
 end
 
 local function getPlayingAnim(animId)
@@ -880,7 +917,7 @@ local function onCharAdded(char)
 	char:WaitForChild("Humanoid"):GetPropertyChangedSignal("Health"):Connect(function()
 		if not char:FindFirstChild("HumanoidRootPart") then return end
 		if not _G.killactivated or _G.killactivated == false then return end
-		if math.floor(char.Humanoid.Health) >= _G.killStealProp and (math.floor(char.Humanoid.Health) ~= 0 or math.floor(char.Humanoid.Health) ~= 1) then return end
+		if math.floor(char.Humanoid.Health) <= _G.killStealProp and (math.floor(char.Humanoid.Health) ~= 0 or math.floor(char.Humanoid.Health) ~= 1) then return end
 		if _G.killSafeSelf == true and localPlayer.Character.Humanoid.Health <= _G.killSafeProp then return end
 		if _G.killKilling == true then return end
 		if _G.killChargeUp == true then return end
@@ -1293,8 +1330,32 @@ local function hlChar(character)
 	end
 
 	if not highlight then return end
+	
+	local ultMoves = {
+		"Death Counter",
+		"Table Flip",
+		"Serious Punch",
+		"Omni Directional Punch",
+		"",
+		"",
+		"",
+		"",
+		
+		"",
+		"",
+		"",
+		"",
+		
+		"",
+		"",
+		"",
+		"",
+	}
 
 	player.Backpack.ChildAdded:Connect(function(child)
+		if child.Name == "Death Counter" then
+			highlight.Enabled = true
+		end
 		print("add", child.Name)
 	end)
 end
@@ -1670,7 +1731,7 @@ RunService.Heartbeat:Connect(function()
 				print("has")
 				anim:Stop()
 				local anim2 = Instance.new("Animation", game.Players.LocalPlayer.Character)
-				anim2.AnimationId = ""
+				anim2.AnimationId = _G.firstM1
 				local anim3 = humanoid:LoadAnimation(anim2)
 				anim3:Play()
 				anim2:Destroy()
