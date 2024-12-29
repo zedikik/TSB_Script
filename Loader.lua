@@ -8,7 +8,7 @@ local playerGui = localPlayer.PlayerGui
 local mouse = localPlayer:GetMouse()
 local camera = workspace.CurrentCamera
 
-local Rayfield = loadstring(game:HttpGet("https://github.com/zedikik/RayField/blob/main/RayField.lua", true))()
+local Rayfield = loadstring(game:HttpGet("https://raw.githubusercontent.com/zedikik/RayField/refs/heads/main/RayField.lua", true))()
 if not Rayfield then return end
 Rayfield:Notify({
 	Title = "Tsb Script",
