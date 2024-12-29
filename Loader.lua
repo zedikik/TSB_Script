@@ -8,7 +8,7 @@ local playerGui = localPlayer.PlayerGui
 local mouse = localPlayer:GetMouse()
 local camera = workspace.CurrentCamera
 
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/zedikik/RayField/refs/heads/main/RayField.lua'))() -- https://sirius.menu/rayfield
 if not Rayfield then return end
 Rayfield:Notify({
 	Title = "Tsb Script",
@@ -1834,8 +1834,10 @@ RunService.Heartbeat:Connect(function()
 
 		if _G.M1sActivated == true then
 			local anim = false
+			local animM1 = 1
 			for i, v in pairs(allAnims) do
 				local animId = v.AnimationId
+				v:Stop()
 				local split = string.split(tostring(animId), "rbxassetid://")
 				animId = split[2]
 				if anim == false or anim == nil then
@@ -1843,19 +1845,110 @@ RunService.Heartbeat:Connect(function()
 						if anim == false or anim == nil then
 							if animId == c then
 								anim = v
+								if (animId == "17325510002" or animId == "10469493270" or animId == "13532562418" or animId == "13491635433" or animId == "13370310513" or animId == "14004222985" or animId == "15259161390" or animId == "16515503507" or animId == "17889458563" or animId == "123005629431309") then
+									animM1 = 1
+								elseif (animId == "17325513870" or animId == "10469630950" or animId == "13296577783" or animId == "13390230973" or animId == "13997092940" or animId == "15240216931" or animId == "16515520431" or animId == "17889461810" or animId == "100059874351664") then
+									animM1 = 2
+								elseif (animId == "17325522388" or animId == "10469639222" or animId == "13532604085" or animId == "13295919399" or animId == "13378751717" or animId == "14001963401" or animId == "15240176873" or animId == "16515448089" or animId == "17889471098" or animId == "104895379416342") then
+									animM1 = 3
+								else
+									animM1 = 4
+								end
 							end
 						end
 					end
 				end
 			end
-			if anim ~= false and anim ~= nil then
-				print("has")
+			if (anim ~= false and anim ~= nil) and animM1 ~= "" then
+				print(anim, anim.Parent)
 				anim:Stop()
-				local anim2 = Instance.new("Animation", game.Players.LocalPlayer.Character)
-				anim2.AnimationId = _G.firstM1
-				local anim3 = humanoid:LoadAnimation(anim2)
-				anim3:Play()
-				anim2:Destroy()
+				local needM1
+				local needAnim
+				if animM1 == 1 then
+					needM1 = _G.firstM1
+				elseif animM1 == 2 then
+					needM1 = _G.secondM1
+				elseif animM1 == 3 then
+					needM1 = _G.thirdM1
+				else
+					needM1 = _G.fourthM1
+				end
+				if needM1 and needM1 ~= nil then
+					local clicks = {
+						["KJ"] = {
+							["M1"] = "17325510002",
+							["M2"] = "17325513870",
+							["M3"] = "17325522388",
+							["M4"] = "17325537719",
+						},
+						["The Strongest Hero"] = {
+							["M1"] = "10469493270",
+							["M2"] = "10469630950",
+							["M3"] = "10469639222",
+							["M4"] = "10469643643",
+						},
+						["Hero Hunter"] = {
+							["M1"] = "13532562418",
+							["M2"] = "13532600125",
+							["M3"] = "13532604085",
+							["M4"] = "13294471966",
+						},
+						["Destructive Cyborg"] = {
+							["M1"] = "13491635433",
+							["M2"] = "13296577783",
+							["M3"] = "13295919399",
+							["M4"] = "13295936866",
+						},
+						["Deadly Ninja"] = {
+							["M1"] = "13370310513",
+							["M2"] = "13390230973",
+							["M3"] = "13378751717",
+							["M4"] = "13378708199",
+						},
+						["Brutal Demon"] = {
+							["M1"] = "14004222985",
+							["M2"] = "13997092940",
+							["M3"] = "14001963401",
+							["M4"] = "14136436157",
+						},
+						["Blade Master"] = {
+							["M1"] = "15259161390",
+							["M2"] = "15240216931",
+							["M3"] = "15240176873",
+							["M4"] = "15162694192",
+						},
+						["Wild Psychic"] = {
+							["M1"] = "16515503507",
+							["M2"] = "16515520431",
+							["M3"] = "16515448089",
+							["M4"] = "16552234590",
+						},
+						["Martial Artist"] = {
+							["M1"] = "17889458563",
+							["M2"] = "17889461810",
+							["M3"] = "17889471098",
+							["M4"] = "17889290569",
+						},
+						["Tech Prodigy"] = {
+							["M1"] = "123005629431309",
+							["M2"] = "100059874351664",
+							["M3"] = "104895379416342",
+							["M4"] = "134775406437626",
+						},
+					}
+					if clicks[needM1] then
+						needAnim = clicks[needM1]["M"..tostring(animM1)]
+					end
+					if needAnim and needAnim ~= "" then
+						print("click")
+						local rbxAsset = "rbxassetid://"
+						local anim2 = Instance.new("Animation", localPlayer.Character)
+						anim2.AnimationId = rbxAsset..needAnim
+						local anim3 = humanoid:LoadAnimation(anim2)
+						anim3:Play()
+						anim2:Destroy()
+					end
+				end
 			end
 		end
 	end
@@ -1910,7 +2003,7 @@ end
 Players.PlayerAdded:Connect(onPlrAdded)
 workspace.Thrown.ChildAdded:Connect(autoGetIceBoss)
 
-local humanoid = localPlayer.Character:FindFirstChild("Humanoid")
+local humanoid = localPlayer.Character:WaitForChild("Humanoid")
 humanoid.Changed:Connect(function()
 	if _G.walkActivated == true then
 		humanoid.WalkSpeed = _G.walkSpeed
