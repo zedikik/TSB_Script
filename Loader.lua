@@ -962,6 +962,7 @@ local function setupUI()
 	setupTab2()
 	setupTab3()
 	setupTab4()
+	setupTab5()
 	setupTab6()
 	setupTab6()
 	setupTab7()
@@ -1909,6 +1910,16 @@ end
 Players.PlayerAdded:Connect(onPlrAdded)
 workspace.Thrown.ChildAdded:Connect(autoGetIceBoss)
 
+local humanoid = localPlayer.Character:FindFirstChild("Humanoid")
+humanoid.Changed:Connect(function()
+	if _G.walkActivated == true then
+		humanoid.WalkSpeed = _G.walkSpeed
+	end
+
+	if _G.jumpActivated == true then
+		humanoid.JumpPower = _G.jumpPower
+	end
+end)
 localPlayer.CharacterAdded:Connect(function(character)
 	local humanoid = character:FindFirstChild("Humanoid")
 	humanoid.Changed:Connect(function()
