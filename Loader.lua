@@ -8,7 +8,7 @@ local playerGui = localPlayer.PlayerGui
 local mouse = localPlayer:GetMouse()
 local camera = workspace.CurrentCamera
 
-local Rayfield = loadstring(game:HttpGet("https://raw.githubusercontent.com/zedikik/RayField/refs/heads/main/RayField.lua"))()
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 if not Rayfield then return end
 Rayfield:Notify({
 	Title = "Tsb Script",
@@ -260,9 +260,9 @@ local function setupUI()
 				print(Keybind)
 				local character = localPlayer.Character
 				local rootPart = character:FindFirstChild("HumanoidRootPart")
-				
+
 				if character and rootPart then
-					 
+
 				end
 			end,
 		})
@@ -282,7 +282,7 @@ local function setupUI()
 				_G.walkActivated = true
 			end,
 		})
-		
+
 		local jumpPowerSlider = Tab2:CreateSlider({
 			Name = "WalkSpeed Slider",
 			Range = {0, 2500},
@@ -935,9 +935,9 @@ local function setupUI()
 				localPlayer.Character.HumanoidRootPart.CFrame = workspace.Live["Weakest Dummy"].HumanoidRootPart.CFrame
 			end,
 		})
-		
+
 		local playersSSection = Tab6:CreateSection("Players Teleports (Cooming Soon)")
-		
+
 	end
 
 	local function setupTab7()
@@ -1750,11 +1750,11 @@ RunService.Heartbeat:Connect(function()
 			if _G.killActivated == true then
 				_G.killActivated = false
 			end
-			
+
 			if _G.voidNeedTp == true then
 				_G.voidNeedTp = false
 			end
-			
+
 			if _G.targetActivated == true then
 				_G.targetActivated = false
 				_G.targetNeedTp = false
@@ -1915,7 +1915,7 @@ localPlayer.CharacterAdded:Connect(function(character)
 		if _G.walkActivated == true then
 			humanoid.WalkSpeed = _G.walkSpeed
 		end
-		
+
 		if _G.jumpActivated == true then
 			humanoid.JumpPower = _G.jumpPower
 		end
