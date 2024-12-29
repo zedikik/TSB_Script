@@ -1921,7 +1921,7 @@ humanoid.Changed:Connect(function()
 	end
 end)
 localPlayer.CharacterAdded:Connect(function(character)
-	local humanoid = character:FindFirstChild("Humanoid")
+	local humanoid = character:WaitForChild("Humanoid")
 	humanoid.Changed:Connect(function()
 		if _G.walkActivated == true then
 			humanoid.WalkSpeed = _G.walkSpeed
