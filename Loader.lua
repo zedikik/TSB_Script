@@ -131,6 +131,8 @@ if not _G.killWorkChars then
 	_G.jumpPower = 50
 	_G.walkActivated = false
 	_G.jumpActivated = false
+	
+	_G.safeMode = false
 end
 
 if not workspace:FindFirstChild("VoidPlate") then
@@ -150,7 +152,7 @@ local Window = Rayfield:CreateWindow({
 	LoadingSubtitle = "by skuff",
 	Theme = "Default", -- Check https://docs.sirius.menu/rayfield/configuration/themes
 
-	DisableRayfieldPrompts = false,
+	DisableRayfieldPrompts = true,
 	DisableBuildWarnings = false, -- Prevents Rayfield from warning when the script has a version mismatch with the interface
 
 	ConfigurationSaving = {
@@ -167,7 +169,7 @@ local Window = Rayfield:CreateWindow({
 		FileName = "TSBScrKey", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
 		SaveKey = true, -- The user's key will be saved, but if you change the key, they will be unable to use your script
 		GrabKeyFromSite = false, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
-		Key = {"Skuff", "skuff", "SKUFF", "skuf", "SKUF"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
+		Key = {"Skuff", "skuff", "SKUFF", "skuf", "SKUF", "Skuf"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
 	}
 })
 
@@ -294,6 +296,16 @@ local function setupUI()
 				print(Value)
 				_G.jumpPower = Value
 				_G.jumpActivated = true
+			end,
+		})
+		
+		local safeModeToggle = Tab2:CreateToggle({
+			Name = "Safe Mode Toggle",
+			CurrentValue = false,
+			Flag = "SMToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Value)
+				print(Value)
+				_G.safeMode = false = Value
 			end,
 		})
 	end
@@ -593,7 +605,7 @@ local function setupUI()
 
 		local targetSafeModeToggle = Tab4:CreateToggle({
 			Name = "Target Safe Mode",
-			CurrentValue = false,
+			CurrentValue = true,
 			Flag = "targetSafeModeToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
 			Callback = function(Value)
 				print(Value)
@@ -1444,25 +1456,54 @@ local function hlChar(character)
 		"Table Flip",
 		"Serious Punch",
 		"Omni Directional Punch",
-		"",
-		"",
-		"",
-		"",
+		
+		"Water Steam Cutting Fist",
+		"The Final Hunt",
+		"Rock Splitting Fist",
+		"Crushed Rock",
+		
+		"Thunder Kick",
+		"Speedblitz Dropkick",
+		"Flamewave Cannon",
+		"Incinerate",
+		
+		"Twinblade Rush",
+		"Straight On",
+		"Carnage",
+		"Fourfold Flashstrike",
+		
+		"Savage Tornade",
+		"Brutal Beatdown",
+		"Strength Difference",
+		"Death Blow",
+		
+		"Sunset",
+		"Solar Cleave",
+		"Sunrize",
+		"Atomic Slash",
+		
+		"Grand Fissure",
+		"Twin Fangs",
+		"Earth Splitting Strike",
+		"Last Breath",
 
-		"",
-		"",
-		"",
-		"",
-
-		"",
-		"",
-		"",
-		"",
+		"Cosmic Strike",
+		"Psycic Ricochet",
+		"Terrible Tornado",
+		"Sky Snatcher",
 	}
 
 	player.Backpack.ChildAdded:Connect(function(child)
-		if child.Name == "Death Counter" then
+		local ult = false
+		for i, v in pairs(ultMoves) do
+			if child.Name == v then
+				ult = true
+			end
+		end
+		if ult == true then
 			highlight.Enabled = true
+		else
+			highlight.Enabled = false
 		end
 		print("add", child.Name)
 	end)
@@ -1938,18 +1979,33 @@ RunService.Heartbeat:Connect(function()
 					end
 					if needAnim and needAnim ~= "" then
 						print("click")
+						local rbxAsset = "rbxassetid://"
+						local f = false
 						for _, animTrack in pairs(humanoid:GetPlayingAnimationTracks()) do
-							if animTrack.AnimationId == anim.AnimationId then
-								print("stop")
+							local needToAnim = true
+							for i, v in pairs(M1sAnimations) do
+								if v == rbxAsset..needAnim then
+									f = true
+								end
+							end
+							if animTrack.Animation.AnimationId ~= rbxAsset..needAnim then
 								animTrack:Stop()
+							else
+								f = true
 							end
 						end
-						local rbxAsset = "rbxassetid://"
-						local anim2 = Instance.new("Animation", localPlayer.Character)
-						anim2.AnimationId = rbxAsset..needAnim
-						local anim3 = humanoid:LoadAnimation(anim2)
-						anim3:Play()
-						anim2:Destroy()
+						if f == false then
+							local anim2 = Instance.new("Animation", localPlayer.Character)
+							anim2.AnimationId = rbxAsset..needAnim
+							local anim3 = humanoid:LoadAnimation(anim2)
+
+							anim3:Play()
+							anim3:AdjustSpeed(1)
+							anim3.TimePosition = 0
+
+							anim3.Ended:Wait()
+							anim2:Destroy()
+						end
 					end
 				end
 			end
