@@ -242,10 +242,7 @@ local function setupUI()
 				for i, v in pairs(Players:GetPlayers()) do
 					if v and v.Character then
 						if v ~= localPlayer then
-							if not v:IsFriendsWith(localPlayer.UserId) then
-								print(v.Name)
-								table.insert(chars, v.Character)
-							end
+							table.insert(chars, v.Character)
 						end
 					end
 				end
@@ -1090,9 +1087,9 @@ end
 
 local function onCharAdded(char)
 	char:WaitForChild("Humanoid"):GetPropertyChangedSignal("Health"):Connect(function()
-		if not char:FindFirstChild("HumanoidRootPart") then warn("No hum part") return end
+		if not char:FindFirstChild("HumanoidRootPart") then return end
 		if _G.killActivated == false then warn("Not activated") return end
-		if math.floor(char.Humanoid.Health) > _G.killStealProp then warn("Too good") return end
+		if math.floor(char.Humanoid.Health) > _G.killStealProp then return end
 		if _G.killSafeSelf == true and localPlayer.Character.Humanoid.Health <= _G.killSafeProp then warn("Safe mode") return end
 		if _G.killKilling == true then warn("already") return end
 		if _G.killChargeUp == true then warn("chargeing") return end
@@ -1766,7 +1763,7 @@ RunService.Heartbeat:Connect(function()
 		end
 
 		if _G.adcNeedTp == true then
-			localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -490, 1)
+			localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -496, 1) * CFrame.Angles(90, 0, 0)
 
 			if _G.killActivated == true then
 				_G.killActivated = false
@@ -1847,7 +1844,7 @@ RunService.Heartbeat:Connect(function()
 							if _G.targetSafeQuotes == 1 then
 								localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -490, 1)
 							else
-								localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -492, 1) * CFrame.Angles(90, 0, 0)
+								localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -496, 1) * CFrame.Angles(90, 0, 0)
 							end
 						end
 					else
