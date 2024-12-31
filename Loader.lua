@@ -75,7 +75,7 @@ local M1sAnimations = {
 
 if not _G.killWorkChars then
 	_G.killWorkChars = {"Hunter", "Cyborg", "Ninja", "Esper", "Blade"}
-	_G.killactivated = false
+	_G.killActivated = false
 	_G.killChargeUp = false 
 	_G.killKilling = false
 	_G.killWhiteList = true
@@ -106,7 +106,7 @@ if not _G.killWorkChars then
 	_G.savageBringActivated = false
 	_G.savageBringWorking = false
 	_G.savageBringQuotes = 2 -- 1 is bring all; 2 is void kill all;
-	
+
 	_G.brutalBeatdownActivated = false
 	_G.brutalBeatdownWorking = false
 	_G.brutalBeatdownQuotes = 2 -- 1 is bring all; 2 is void kill all;
@@ -305,7 +305,7 @@ local function setupUI()
 				_G.jumpActivated = true
 			end,
 		})
-		
+
 		local safeSection = Tab2:CreateSection("Safe Mode")
 
 		local safeModeToggle = Tab2:CreateToggle({
@@ -317,7 +317,7 @@ local function setupUI()
 				_G.safeModeActivated = Value
 			end,
 		})
-		
+
 		local safeModeLocationsDropdown = Tab4:CreateDropdown({
 			Name = "Safe Mode TP Location",
 			Options = {"Map Center", "Void Platform", "Death Counter Room", "Atomic Slash Room", "Upper Baseplate", "Lower Baseplate"},
@@ -352,7 +352,7 @@ local function setupUI()
 				end
 			end,
 		})
-		
+
 		local safeModePropSlider = Tab2:CreateSlider({
 			Name = "Safe Mode Prop",
 			Range = {1, 100},
@@ -430,7 +430,7 @@ local function setupUI()
 				end
 			end
 		})
-		
+
 		local ultEspToggle = Tab3:CreateToggle({
 			Name = "Ult Esp",
 			CurrentValue = false,
@@ -1090,13 +1090,13 @@ end
 
 local function onCharAdded(char)
 	char:WaitForChild("Humanoid"):GetPropertyChangedSignal("Health"):Connect(function()
-		if not char:FindFirstChild("HumanoidRootPart") then return end
-		if not _G.killactivated or _G.killactivated == false then return end
-		if math.floor(char.Humanoid.Health) <= _G.killStealProp and (math.floor(char.Humanoid.Health) ~= 0 or math.floor(char.Humanoid.Health) ~= 1) then return end
-		if _G.killSafeSelf == true and localPlayer.Character.Humanoid.Health <= _G.killSafeProp then return end
-		if _G.killKilling == true then return end
-		if _G.killChargeUp == true then return end
-		if killWorking == false then return end
+		if not char:FindFirstChild("HumanoidRootPart") then warn("No hum part") return end
+		if _G.killActivated == false then warn("Not activated") return end
+		if math.floor(char.Humanoid.Health) > _G.killStealProp then warn("Too good") return end
+		if _G.killSafeSelf == true and localPlayer.Character.Humanoid.Health <= _G.killSafeProp then warn("Safe mode") return end
+		if _G.killKilling == true then warn("already") return end
+		if _G.killChargeUp == true then warn("chargeing") return end
+		if killWorking == false then warn("last one") return end
 
 		if selectedChar ~= "" or selectedChar ~= nil then
 			if selectedChar == "Cyborg" then
@@ -1664,7 +1664,7 @@ local function voidKill()
 end
 
 local function bringAll()
-	
+
 end
 
 local function target()
@@ -1771,11 +1771,11 @@ RunService.Heartbeat:Connect(function()
 			if _G.killActivated == true then
 				_G.killActivated = false
 			end
-			
+
 			if _G.safeModeNeedTP == true then
 				_G.safeModeNeedTP = false
 			end
-			
+
 			if _G.targetNeedTp == false then
 				_G.targetNeedTp = false
 			end
@@ -1803,10 +1803,10 @@ RunService.Heartbeat:Connect(function()
 				_G.targetNeedTp = false
 			end
 		end
-		
+
 		if _G.safeMode == true and _G.safeModeNeedTP == true and _G.safeModeLoc ~= CFrame.new() then
 			local humanoid = localPlayer.Character:FindFirstChild("Humanoid")
-			
+
 			if humanoid then
 				if math.floor(humanoid.Health) <= _G.safeModeProp then
 					if localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") then
@@ -2049,15 +2049,13 @@ local function onPlrAdded(plr)
 	plr.CharacterAdded:Connect(hlChar)
 
 	if _G.killWhiteList == true then
-		if plr:IsFriendsWith(localPlayer.UserId) then
-			return
+		if not plr:IsFriendsWith(localPlayer.UserId) then
+			plr.CharacterAdded:Connect(onCharAdded)
+			if plr.Character then
+				onCharAdded(plr.Character)
+				hlChar(plr.Character)
+			end
 		end
-	end
-
-	plr.CharacterAdded:Connect(onCharAdded)
-	if plr.Character then
-		onCharAdded(plr.Character)
-		hlChar(plr.Character)
 	end
 end
 
