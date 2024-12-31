@@ -136,7 +136,7 @@ if not _G.killWorkChars then
 	_G.jumpPower = 50
 	_G.walkActivated = false
 	_G.jumpActivated = false
-	
+
 	_G.autoRotateActivated = false
 
 	_G.safeMode = false
@@ -152,7 +152,7 @@ if not workspace:FindFirstChild("VoidPlate") then
 	voidPlate.Anchored = true
 	voidPlate.Material = Enum.Material.ForceField
 	voidPlate.Size = Vector3.new(1027, 5, 770)
-	voidPlate.CFrame = CFrame.new(0, -505, 0)
+	voidPlate.CFrame = CFrame.new(0, -497, 0)
 end
 
 local Window = Rayfield:CreateWindow({
@@ -244,7 +244,7 @@ local function setupUI()
 				_G.voidManualWait = Value
 			end,
 		})
-		
+
 		local tpAllBind = Tab:CreateKeybind({
 			Name = "Bring All (Teleport to all players on map)",
 			CurrentKeybind = "Z",
@@ -318,7 +318,7 @@ local function setupUI()
 				_G.jumpActivated = true
 			end,
 		})
-		
+
 		local autoRotateToggle = Tab2:CreateToggle({
 			Name = "Safe Mode Toggle",
 			CurrentValue = false,
