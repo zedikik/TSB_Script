@@ -232,7 +232,7 @@ local function setupUI()
 				end
 			end,
 		})
-		local manualWaitSlider = Tab2:CreateSlider({
+		local manualWaitSlider = Tab:CreateSlider({
 			Name = "Manual Void Wait Time",
 			Range = {0, 10},
 			Increment = 1,
@@ -320,7 +320,7 @@ local function setupUI()
 		})
 
 		local autoRotateToggle = Tab2:CreateToggle({
-			Name = "Safe Mode Toggle",
+			Name = "Auto Rotate",
 			CurrentValue = false,
 			Flag = "autoRotateToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
 			Callback = function(Value)
@@ -341,7 +341,7 @@ local function setupUI()
 			end,
 		})
 
-		local safeModeLocationsDropdown = Tab4:CreateDropdown({
+		local safeModeLocationsDropdown = Tab2:CreateDropdown({
 			Name = "Safe Mode TP Location",
 			Options = {"Map Center", "Void Platform", "Death Counter Room", "Atomic Slash Room", "Upper Baseplate", "Lower Baseplate"},
 			CurrentOption = {"Void Platform"},
