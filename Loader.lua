@@ -101,11 +101,15 @@ if not _G.killWorkChars then
 
 	_G.hitboxColor = Color3.new(255, 0, 0)
 
-	_G.ultEspActivated = false -- move is balde; MainWind in head, AbsoluteImmortal in char; GlowingArm is genos; AbsoluteImmortal is sonic, move is sonic; AbsoluteImmortal is batter, aura1 in head  is batter; AbsoluteImmortal is blade, Move is blade; Headeffectspace is tatsu, AbsoluteImmortal is tatsu, 5aura1 in head  is tatsu; 
+	_G.ultEspActivated = false
 
-	_G.tatsuUltActivated = false
-	_G.tatsuUltWorking = false
-	_G.tatsuUltQuotes = 2 -- 1 is bring all; 2 is void kill all;
+	_G.savageBringActivated = false
+	_G.savageBringWorking = false
+	_G.savageBringQuotes = 2 -- 1 is bring all; 2 is void kill all;
+	
+	_G.brutalBeatdownActivated = false
+	_G.brutalBeatdownWorking = false
+	_G.brutalBeatdownQuotes = 2 -- 1 is bring all; 2 is void kill all;
 
 	_G.targetActivated = false
 	_G.targetAutoAfk = false
@@ -133,6 +137,9 @@ if not _G.killWorkChars then
 	_G.jumpActivated = false
 
 	_G.safeMode = false
+	_G.safeModeNeedTP = false
+	_G.safeModeLoc = CFrame.new()
+	_G.safeModeProp = 17
 end
 
 if not workspace:FindFirstChild("VoidPlate") then
@@ -286,7 +293,7 @@ local function setupUI()
 		})
 
 		local jumpPowerSlider = Tab2:CreateSlider({
-			Name = "WalkSpeed Slider",
+			Name = "JumpPower Slider",
 			Range = {0, 2500},
 			Increment = 1,
 			Suffix = "Power",
@@ -298,6 +305,8 @@ local function setupUI()
 				_G.jumpActivated = true
 			end,
 		})
+		
+		local safeSection = Tab2:CreateSection("Safe Mode")
 
 		local safeModeToggle = Tab2:CreateToggle({
 			Name = "Safe Mode Toggle",
@@ -305,7 +314,55 @@ local function setupUI()
 			Flag = "SMToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
 			Callback = function(Value)
 				print(Value)
-				_G.safeMode = Value
+				_G.safeModeActivated = Value
+			end,
+		})
+		
+		local safeModeLocationsDropdown = Tab4:CreateDropdown({
+			Name = "Safe Mode TP Location",
+			Options = {"Map Center", "Void Platform", "Death Counter Room", "Atomic Slash Room", "Upper Baseplate", "Lower Baseplate"},
+			CurrentOption = {"Void Platform"},
+			MultipleOptions = false,
+			Flag = "safeModeLocationDropdown", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Opt)
+				local option = nil
+				for i, v in Opt do
+					if not option or option == nil then
+						option = v
+					end
+				end
+				if option and option ~= nil then
+					if string.match(option, "Map") then
+						_G.safeModeLoc = CFrame.new(149, 440, 29)
+					elseif string.match(option, "Void") then
+						_G.safeModeLoc = CFrame.new(0, -493, 0)
+					elseif string.match(option, "Death") then
+						_G.safeModeLoc = CFrame.new(-66, 30, 20356)
+					elseif string.match(option, "Atomic") then
+						_G.safeModeLoc = CFrame.new(1050, 140, 23010)
+					elseif string.match(option, "Upper") then
+						_G.safeModeLoc = CFrame.new(1060, 405, 22887)
+					elseif string.match(option, "Lower") then
+						_G.safeModeLoc = CFrame.new(1060, 20, 22887)
+					else
+						warn(option)
+					end
+				else
+					warn(option)
+				end
+			end,
+		})
+		
+		local safeModePropSlider = Tab2:CreateSlider({
+			Name = "Safe Mode Prop",
+			Range = {1, 100},
+			Increment = 1,
+			Suffix = "HP",
+			CurrentValue = 17,
+			Flag = "safeModePropSlider", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Value)
+				print(Value)
+				_G.safeModeProp = Value
 			end,
 		})
 	end
@@ -373,22 +430,20 @@ local function setupUI()
 				end
 			end
 		})
+		
+		local ultEspToggle = Tab3:CreateToggle({
+			Name = "Ult Esp",
+			CurrentValue = false,
+			Flag = "ultEspToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Value)
+				print(Value)
+				_G.ultEspActivated = Value
+			end,
+		})
 	end
 
 	local function setupTab4()
-		local otherSection = Tab4:CreateSection("Other Exploits")
-
-		local snowballBoosterToggle = Tab4:CreateToggle({
-			Name = "Snowball Booster",
-			CurrentValue = false,
-			Flag = "SBToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-			Callback = function(Value)
-				print(Value)
-				_G.snowballBooster = Value
-			end,
-		})
-
-		local otherSection = Tab4:CreateSection("Main Exploits")
+		local otherSection = Tab4:CreateSection("Exploits")
 
 		local antiDeathCounterToggle = Tab4:CreateToggle({
 			Name = "Anti Death Counter",
@@ -1456,56 +1511,57 @@ local function hlChar(character)
 		"Table Flip",
 		"Serious Punch",
 		"Omni Directional Punch",
-
 		"Water Steam Cutting Fist",
 		"The Final Hunt",
 		"Rock Splitting Fist",
 		"Crushed Rock",
-
 		"Thunder Kick",
 		"Speedblitz Dropkick",
 		"Flamewave Cannon",
 		"Incinerate",
-
 		"Twinblade Rush",
 		"Straight On",
 		"Carnage",
 		"Fourfold Flashstrike",
-
 		"Savage Tornade",
 		"Brutal Beatdown",
 		"Strength Difference",
 		"Death Blow",
-
 		"Sunset",
 		"Solar Cleave",
 		"Sunrize",
 		"Atomic Slash",
-
 		"Grand Fissure",
 		"Twin Fangs",
 		"Earth Splitting Strike",
 		"Last Breath",
-
 		"Cosmic Strike",
 		"Psycic Ricochet",
 		"Terrible Tornado",
 		"Sky Snatcher",
+		"Stoic Bomb",
+		"20-20-20 Dropkick",
+		"Five Seasons",
+		"Unlimited Flex Works",
 	}
 
 	player.Backpack.ChildAdded:Connect(function(child)
-		local ult = false
-		for i, v in pairs(ultMoves) do
-			if child.Name == v then
-				ult = true
+		if _G.ultEspActivated == true then
+			local ult = false
+			for i, v in pairs(ultMoves) do
+				if child.Name == v then
+					ult = true
+				end
 			end
-		end
-		if ult == true then
-			highlight.Enabled = true
+			if ult == true then
+				print(player.Name, "ulted")
+				highlight.Enabled = true
+			else
+				highlight.Enabled = false
+			end
 		else
 			highlight.Enabled = false
 		end
-		print("add", child.Name)
 	end)
 end
 
@@ -1607,64 +1663,8 @@ local function voidKill()
 	localPlayer.Character.HumanoidRootPart.CFrame = oldCFrame
 end
 
-local function tatsuUlt()
-	print("func")
-	if _G.tatsuUltActivated == false then warn("not activated") return end
-	if _G.tatsuUltWorking == true then warn("already working") return end
-	if not localPlayer.Character then warn("Char not found") return end
-	print("skuf")
-	_G.tatsuUltWorking = true
-	print("ult")
-
-	local chars = {}
-	for i, v in pairs(Players:GetPlayers()) do
-		if v and v.Character then
-			if v ~= localPlayer then
-				print(v.Name)
-				table.insert(chars, v.Character)
-			end
-		end
-	end
-
-	local oldCFrame = localPlayer.Character:FindFirstChild("HumanoidRootPart").CFrame
-
-	task.wait(1)
-	if chars[1] then
-		print("bring all")
-		for i, v in pairs(chars) do
-			if localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("HumanoidRootPart") then
-				localPlayer.Character:FindFirstChild("HumanoidRootPart").CFrame = v:FindFirstChild("HumanoidRootPart").CFrame
-				task.wait(0.15)
-			end
-		end
-
-		--if _G.tatsuUltQuotes == 1 then
-		localPlayer.Character:FindFirstChild("HumanoidRootPart").CFrame = oldCFrame
-
-		task.defer(function()
-			task.wait(7)
-			_G.tatsuUltWorking = false
-		end)
-
-		return true
-		--[[else
-			_G.voidNeedTp = true
-			task.wait(2.5)
-			_G.voidNeedTp = false
-			print("voided")
-
-			task.defer(function()
-				task.wait(7)
-				_G.tatsuUltWorking = false
-			end)
-			return true
-		end]]
-	else
-		warn(#chars, chars[1], chars[2])
-	end
-
-	_G.tatsuUltWorking = false
-	return false
+local function bringAll()
+	
 end
 
 local function target()
@@ -1771,16 +1771,13 @@ RunService.Heartbeat:Connect(function()
 			if _G.killActivated == true then
 				_G.killActivated = false
 			end
-
-			if _G.targetActivated == true then
-				_G.targetActivated = false
-				_G.targetNeedTp = false
-				_G.targetTarget = ""
+			
+			if _G.safeModeNeedTP == true then
+				_G.safeModeNeedTP = false
 			end
-
-			if _G.snowballBooster == true then
-				_G.snowballBooster = false
-				_G.snowballPlayer = nil
+			
+			if _G.targetNeedTp == false then
+				_G.targetNeedTp = false
 			end
 		end
 
@@ -1797,10 +1794,38 @@ RunService.Heartbeat:Connect(function()
 				_G.voidNeedTp = false
 			end
 
+			if _G.safeModeNeedTP == true then
+				_G.safeModeNeedTP = false
+			end
+
 			if _G.targetActivated == true then
 				_G.targetActivated = false
 				_G.targetNeedTp = false
-				_G.targetTarget = ""
+			end
+		end
+		
+		if _G.safeMode == true and _G.safeModeNeedTP == true and _G.safeModeLoc ~= CFrame.new() then
+			local humanoid = localPlayer.Character:FindFirstChild("Humanoid")
+			
+			if humanoid then
+				if math.floor(humanoid.Health) <= _G.safeModeProp then
+					if localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") then
+						localPlayer.Character.HumanoidRootPart.CFrame = _G.safeModeLoc
+					end
+
+					if _G.killActivated == true then
+						_G.killActivated = false
+					end
+
+					if _G.voidNeedTp == true then
+						_G.voidNeedTp = false
+					end
+
+					if _G.targetActivated == true then
+						_G.targetActivated = false
+						_G.targetNeedTp = false
+					end
+				end
 			end
 		end
 
@@ -1832,12 +1857,6 @@ RunService.Heartbeat:Connect(function()
 				end
 			end
 		end
-
-		if _G.snowballBoosterNeedTp == true and _G.snowballPlayer ~= nil then
-			print(_G.snowballPlayer)
-			local cf = _G.snowballPlayer.Character.HumanoidRootPart.CFrame
-			localPlayer.Character.HumanoidRootPart.CFrame = cf - (cf.LookVector * 3.5) + _G.targetTarget.Character.Humanoid.MoveDirection
-		end
 	end
 
 	if localPlayer.Character then
@@ -1845,7 +1864,6 @@ RunService.Heartbeat:Connect(function()
 
 		local allAnims = geyPlayingAnims()
 		local isDeathCountered = getPlayingAnim("11343250001")
-		local isSnowball = getPlayingAnim("128022763591042")
 		local tatsuUltAct = getPlayingAnim("16734584478")
 		_G.isDeath = isDeathCountered
 
@@ -1862,15 +1880,6 @@ RunService.Heartbeat:Connect(function()
 				print("start func")
 				voidKill()
 			end
-		end
-
-		if tatsuUltAct == true and _G.tatsuUltActivated == true and _G.tatsuUltWorking == false then
-			print("tATSU ULT")
-			tatsuUlt()
-		end
-
-		if isSnowball == true and _G.snowballBooster == true then
-			snowballBooster()
 		end
 
 		if _G.M1sActivated == true then
