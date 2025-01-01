@@ -143,6 +143,8 @@ if not _G.killWorkChars then
 	_G.safeModeNeedTP = false
 	_G.safeModeLoc = CFrame.new()
 	_G.safeModeProp = 17
+
+	_G.adminWarning = false
 end
 
 if not workspace:FindFirstChild("VoidPlate") then
@@ -222,7 +224,7 @@ local function setupUI()
 
 					_G.voidNeedTp = true
 					_G.voidKilling = true
-					task.wait(4)
+					task.wait(_G.voidManualWait)
 					_G.voidKilling = false
 					_G.voidNeedTp = false
 
@@ -234,10 +236,10 @@ local function setupUI()
 		})
 		local manualWaitSlider = Tab:CreateSlider({
 			Name = "Manual Void Wait Time",
-			Range = {0, 10},
+			Range = {0, 100},
 			Increment = 1,
 			Suffix = "Second",
-			CurrentValue = 16,
+			CurrentValue = 4,
 			Flag = "voidManualTimeSlider", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
 			Callback = function(Value)
 				print(Value)
@@ -577,7 +579,7 @@ local function setupUI()
 			end,
 		})
 
-		local bringSection = Tab4:CreateSection("Bring Exploit")
+		--[[local bringSection = Tab4:CreateSection("Bring Exploit")
 
 
 		local tatsuBringToggle = Tab4:CreateToggle({
@@ -615,7 +617,7 @@ local function setupUI()
 					warn(option)
 				end
 			end,
-		})
+		})]]
 
 		local targetSection = Tab4:CreateSection("Target Exploit")
 
@@ -1046,6 +1048,16 @@ local function setupUI()
 				coroutine.resume(Rejoin)
 			end,
 		})
+
+		local autoCheckAdminsToggle = Tab7:CreateToggle({
+			Name = "Auto Check for Admins",
+			CurrentValue = false,
+			Flag = "ACFAToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Value)
+				print(Value)
+				_G.adminWarning = Value
+			end,
+		})
 	end
 
 	setupTab()
@@ -1114,12 +1126,12 @@ end
 local function onCharAdded(char)
 	char:WaitForChild("Humanoid"):GetPropertyChangedSignal("Health"):Connect(function()
 		if not char:FindFirstChild("HumanoidRootPart") then return end
-		if _G.killActivated == false then warn("Not activated") return end
+		if _G.killActivated == false then return end
 		if math.floor(char.Humanoid.Health) > _G.killStealProp then return end
-		if _G.killSafeSelf == true and localPlayer.Character.Humanoid.Health <= _G.killSafeProp then warn("Safe mode") return end
+		if _G.killSafeSelf == true and localPlayer.Character.Humanoid.Health <= _G.killSafeProp then return end
 		if _G.killKilling == true then warn("already") return end
-		if _G.killChargeUp == true then warn("chargeing") return end
-		if killWorking == false then warn("last one") return end
+		if _G.killChargeUp == true then return end
+		if killWorking == false then return end
 
 		if selectedChar ~= "" or selectedChar ~= nil then
 			if selectedChar == "Cyborg" then
@@ -1702,6 +1714,28 @@ local function autoGetIceBoss(object)
 	end
 end
 
+local function checkForAdmins(player)
+	if _G.adminWarning == false then return end
+
+	local admins = {0, 4041635170, 1241352401, 3350014406, 3891230967, 681405668, 1001242712, 138249029, 3414432341, 339633571, 1059541187, 995625009, 1148708686, 33963357, 58214194, 747447782, 2039323684, 430966809, 202693941, 3673381374};
+	local admin = false
+
+	for i, v in pairs(admins) do
+		if player.UserId == v then
+			admin = true
+		end
+	end
+
+	if admin == true then
+		Rayfield:Notify({
+			Title = "💀💀💀",
+			Content = player.DisplayName.." (@"..player.Name..") is admin, be careful now! 💀",
+			Duration = 6.5,
+			Image = 4483362458,
+		})
+	end
+end
+
 RunService.Heartbeat:Connect(function()
 	if localPlayer.Character then
 		if _G.adcActivated == true then
@@ -1715,7 +1749,7 @@ RunService.Heartbeat:Connect(function()
 		end
 
 		if _G.adcNeedTp == true then
-			localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -502, 1) * CFrame.Angles(90, 0, 0)
+			localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -494, 1) * CFrame.Angles(90, 0, 0)
 
 			if _G.killActivated == true then
 				_G.killActivated = false
@@ -1796,7 +1830,7 @@ RunService.Heartbeat:Connect(function()
 							if _G.targetSafeQuotes == 1 then
 								localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -490, 1)
 							else
-								localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -502, 1) * CFrame.Angles(75, 0, 0)
+								localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -494, 1) * CFrame.Angles(75, 0, 0)
 							end
 						end
 					else
@@ -2048,6 +2082,15 @@ localPlayer.CharacterAdded:Connect(function(character)
 		end
 	end)
 end)
+
+while task.wait(5) do
+	for i , v in pairs(Players:GetPlayers()) do
+		checkForAdmins(v)
+	end
+	Players.PlayerAdded:Connect(function(player)
+		checkForAdmins(player)
+	end)
+end
 
 Rayfield:Notify({
 	Title = "Tsb Script",
