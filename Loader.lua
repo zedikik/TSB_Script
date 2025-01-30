@@ -19,59 +19,6 @@ Rayfield:Notify({
 
 local killWorking = false
 local selectedChar = ""
-local M1sAnimations = {
-	-- kj
-	"17325510002",
-	"17325513870",
-	"17325522388",
-	"17325537719",
-	-- saitama
-	"10469493270",
-	"10469630950",
-	"10469639222",
-	"10469643643",
-	-- garou
-	"13532562418",
-	"13532600125",
-	"13532604085",
-	"13294471966",
-	-- genos
-	"13491635433",
-	"13296577783",
-	"13295919399",
-	"13295936866",
-	-- sonic
-	"13370310513",
-	"13390230973",
-	"13378751717",
-	"13378708199",
-	-- metal bite
-	"14004222985",
-	"13997092940",
-	"14001963401",
-	"14136436157",
-	-- blade master
-	"15259161390",
-	"15240216931",
-	"15240176873",
-	"15162694192",
-	-- tatsumaki
-	"16515503507",
-	"16515520431",
-	"16515448089",
-	"16552234590",
-	-- suriy
-	"17889458563",
-	"17889461810",
-	"17889471098",
-	"17889290569",
-	-- child emperor
-	"123005629431309",
-	"100059874351664",
-	"104895379416342",
-	"134775406437626",
-}
-
 
 if not _G.killWorkChars then
 	_G.killWorkChars = {"Hunter", "Cyborg", "Ninja", "Esper", "Blade"}
@@ -123,15 +70,6 @@ if not _G.killWorkChars then
 
 	_G.autoGetIceBoss = false
 
-	_G.snowballBooster = false
-	_G.snowballPlayer = nil
-
-	_G.firstM1 = "The Strongest Hero" -- The Strongest Hero  is default
-	_G.secondM1 = "The Strongest Hero" -- The Strongest Hero  is default
-	_G.thirdM1 = "The Strongest Hero" -- The Strongest Hero  is default
-	_G.fourthM1 = "The Strongest Hero" -- The Strongest Hero  is default
-	_G.M1sActivated = false
-
 	_G.walkSpeed = 16
 	_G.jumpPower = 50
 	_G.walkActivated = false
@@ -145,6 +83,7 @@ if not _G.killWorkChars then
 	_G.safeModeProp = 17
 
 	_G.adminWarning = false
+	_G.adminFriend = false
 end
 
 if not workspace:FindFirstChild("VoidPlate") then
@@ -579,46 +518,6 @@ local function setupUI()
 			end,
 		})
 
-		--[[local bringSection = Tab4:CreateSection("Bring Exploit")
-
-
-		local tatsuBringToggle = Tab4:CreateToggle({
-			Name = "Tatsumaki Ult",
-			CurrentValue = false,
-			Flag = "tatsuUltToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-			Callback = function(Value)
-				print(Value)
-				_G.tatsuUltActivated = Value
-			end,
-		})
-
-		local tatsuUltQuotesDropdown = Tab4:CreateDropdown({
-			Name = "Tatsumaki Ult Quotes",
-			Options = {"Bring All", "Void Kill all"},
-			CurrentOption = {"Void Kill all"},
-			MultipleOptions = false,
-			Flag = "tatsuUltQuotesDropdown", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-			Callback = function(Opt)
-				local option = nil
-				for i, v in Opt do
-					if not option or option == nil then
-						option = v
-					end
-				end
-				if option and option ~= nil then
-					if string.match(option, "Bring") then
-						print("Bring")
-						_G.tatsuUltQuotes = 1
-					else
-						print("Void")
-						_G.tatsuUltQuotes = 2
-					end
-				else
-					warn(option)
-				end
-			end,
-		})]]
-
 		local targetSection = Tab4:CreateSection("Target Exploit")
 
 
@@ -805,107 +704,6 @@ local function setupUI()
 				_G.autoGetIceBoss = Value
 			end,
 		})
-
-		local snowSection = Tab5:CreateSection("Snow Section")
-
-		local firstM1Dropdown = Tab5:CreateDropdown({
-			Name = "First M1",
-			Options = {"The Strongest Hero", "Hero Hunter", "Destructive Cyborg", "Deadly Ninja", "Brutal Demon", "Blade Master", "Wild Psychic", "Martial Artist", "Tech Prodigy", "KJ"},
-			CurrentOption = {"The Strongest Hero"},
-			MultipleOptions = false,
-			Flag = "firstM1Dropdown", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-			Callback = function(Opt)
-				local option = nil
-				for i, v in Opt do
-					if not option or option == nil then
-						option = v
-					end
-				end
-				if option and option ~= nil then
-					_G.firstM1 = option
-					print(_G.firstM1)
-				else
-					warn(option)
-				end
-			end,
-		})
-
-		local secondM1Dropdown = Tab5:CreateDropdown({
-			Name = "Second M1",
-			Options = {"The Strongest Hero", "Hero Hunter", "Destructive Cyborg", "Deadly Ninja", "Brutal Demon", "Blade Master", "Wild Psychic", "Martial Artist", "Tech Prodigy", "KJ"},
-			CurrentOption = {"The Strongest Hero"},
-			MultipleOptions = false,
-			Flag = "secondM1Dropdown", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-			Callback = function(Opt)
-				local option = nil
-				for i, v in Opt do
-					if not option or option == nil then
-						option = v
-					end
-				end
-				if option and option ~= nil then
-					_G.secondM1 = option
-					print(_G.secondM1)
-				else
-					warn(option)
-				end
-			end,
-		})
-
-		local thirdM1Dropdown = Tab5:CreateDropdown({
-			Name = "Third M1",
-			Options = {"The Strongest Hero", "Hero Hunter", "Destructive Cyborg", "Deadly Ninja", "Brutal Demon", "Blade Master", "Wild Psychic", "Martial Artist", "Tech Prodigy", "KJ"},
-			CurrentOption = {"The Strongest Hero"},
-			MultipleOptions = false,
-			Flag = "thirdM1Dropdown", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-			Callback = function(Opt)
-				local option = nil
-				for i, v in Opt do
-					if not option or option == nil then
-						option = v
-					end
-				end
-				if option and option ~= nil then
-					_G.thirdM1 = option
-					print(_G.thirdM1)
-				else
-					warn(option)
-				end
-			end,
-		})
-
-		local fourthM1Dropdown = Tab5:CreateDropdown({
-			Name = "Fourt M1",
-			Options = {"The Strongest Hero", "Hero Hunter", "Destructive Cyborg", "Deadly Ninja", "Brutal Demon", "Blade Master", "Wild Psychic", "Martial Artist", "Tech Prodigy", "KJ"},
-			CurrentOption = {"The Strongest Hero"},
-			MultipleOptions = false,
-			Flag = "thirdM1Dropdown", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-			Callback = function(Opt)
-				local option = nil
-				for i, v in Opt do
-					if not option or option == nil then
-						option = v
-					end
-				end
-				if option and option ~= nil then
-					_G.fourthM1 = option
-					print(_G.fourthM1)
-				else
-					warn(option)
-				end
-			end,
-		})
-
-		local customM1sToggle = Tab5:CreateToggle({
-			Name = "Apply Custom M1s",
-			CurrentValue = false,
-			Flag = "customM1sToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-			Callback = function(Value)
-				print(Value)
-				_G.M1sActivated = Value
-			end,
-		})
-
 	end
 
 	local function setupTab6()
@@ -940,6 +738,40 @@ local function setupUI()
 			Callback = function(Keybind)
 				print(Keybind)
 				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(0, -493, 0)
+			end,
+		})
+		
+		local bigJail = Tab6:CreateButton({
+			Name = "Big Jail",
+			Callback = function()
+				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(284, 439, 467)
+			end,
+		})
+		local bigJailBind = Tab6:CreateKeybind({
+			Name = "Big Jail TP Bind",
+			CurrentKeybind = "",
+			HoldToInteract = false,
+			Flag = "bigJailBind", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Keybind)
+				print(Keybind)
+				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(284, 439, 467)
+			end,
+		})
+		
+		local biggestJail = Tab6:CreateButton({
+			Name = "Biggest Jail",
+			Callback = function()
+				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(378, 439, 457)
+			end,
+		})
+		local biggestJailBind = Tab6:CreateKeybind({
+			Name = "Biggest Jail TP Bind",
+			CurrentKeybind = "",
+			HoldToInteract = false,
+			Flag = "bigJailBind", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Keybind)
+				print(Keybind)
+				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(378, 439, 457)
 			end,
 		})
 
@@ -1058,6 +890,16 @@ local function setupUI()
 				_G.adminWarning = Value
 			end,
 		})
+
+		local autoCheckAdminsFriendsToggle = Tab7:CreateToggle({
+			Name = "Check for Admins Friends?",
+			CurrentValue = false,
+			Flag = "ACFAToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Value)
+				print(Value)
+				_G.adminFriend = Value
+			end,
+		})
 	end
 
 	setupTab()
@@ -1065,7 +907,6 @@ local function setupUI()
 	setupTab3()
 	setupTab4()
 	setupTab5()
-	setupTab6()
 	setupTab6()
 	setupTab7()
 end
@@ -1719,20 +1560,38 @@ local function checkForAdmins(player)
 
 	local admins = {0, 4041635170, 1241352401, 3350014406, 3891230967, 681405668, 1001242712, 138249029, 3414432341, 339633571, 1059541187, 995625009, 1148708686, 33963357, 58214194, 747447782, 2039323684, 430966809, 202693941, 3673381374};
 	local admin = false
+	local friend = false
 
 	for i, v in pairs(admins) do
 		if player.UserId == v then
 			admin = true
+			friend = false
+		end
+
+		if _G.adminFriend == true then
+			if player:IsFriendsWith(v) and player.UserId ~= v then
+				admin = true
+				friend = true
+			end
 		end
 	end
 
 	if admin == true then
-		Rayfield:Notify({
-			Title = "💀💀💀",
-			Content = player.DisplayName.." (@"..player.Name..") is admin, be careful now! 💀",
-			Duration = 6.5,
-			Image = 4483362458,
-		})
+		if friend == false then
+			Rayfield:Notify({
+				Title = "💀💀💀",
+				Content = player.DisplayName.." (@"..player.Name..") is admin, be careful now! 💀",
+				Duration = 6.5,
+				Image = 4483362458,
+			})
+		else
+			Rayfield:Notify({
+				Title = "💀💀💀",
+				Content = player.DisplayName.." (@"..player.Name..") is admin's friend, be careful now! 💀",
+				Duration = 6.5,
+				Image = 4483362458,
+			})
+		end
 	end
 end
 
@@ -1862,144 +1721,6 @@ RunService.Heartbeat:Connect(function()
 			if _G.voidKillActivated == true and _G.voidKilling == false and isAnim == true then
 				print("start func")
 				voidKill()
-			end
-		end
-
-		if _G.M1sActivated == true then
-			local anim = false
-			local animM1 = 1
-			for i, v in pairs(allAnims) do
-				local animId = v.AnimationId
-				local split = string.split(tostring(animId), "rbxassetid://")
-				animId = split[2]
-				if anim == false or anim == nil then
-					for _, c in pairs(M1sAnimations) do
-						if anim == false or anim == nil then
-							if animId == c then
-								anim = v
-								if (animId == "17325510002" or animId == "10469493270" or animId == "13532562418" or animId == "13491635433" or animId == "13370310513" or animId == "14004222985" or animId == "15259161390" or animId == "16515503507" or animId == "17889458563" or animId == "123005629431309") then
-									animM1 = 1
-								elseif (animId == "17325513870" or animId == "10469630950" or animId == "13296577783" or animId == "13390230973" or animId == "13997092940" or animId == "15240216931" or animId == "16515520431" or animId == "17889461810" or animId == "100059874351664") then
-									animM1 = 2
-								elseif (animId == "17325522388" or animId == "10469639222" or animId == "13532604085" or animId == "13295919399" or animId == "13378751717" or animId == "14001963401" or animId == "15240176873" or animId == "16515448089" or animId == "17889471098" or animId == "104895379416342") then
-									animM1 = 3
-								else
-									animM1 = 4
-								end
-							end
-						end
-					end
-				end
-			end
-			if (anim ~= false and anim ~= nil) and animM1 ~= "" then
-				local needM1
-				local needAnim
-				if animM1 == 1 then
-					needM1 = _G.firstM1
-				elseif animM1 == 2 then
-					needM1 = _G.secondM1
-				elseif animM1 == 3 then
-					needM1 = _G.thirdM1
-				else
-					needM1 = _G.fourthM1
-				end
-				if needM1 and needM1 ~= nil then
-					local clicks = {
-						["KJ"] = {
-							["M1"] = "17325510002",
-							["M2"] = "17325513870",
-							["M3"] = "17325522388",
-							["M4"] = "17325537719",
-						},
-						["The Strongest Hero"] = {
-							["M1"] = "10469493270",
-							["M2"] = "10469630950",
-							["M3"] = "10469639222",
-							["M4"] = "10469643643",
-						},
-						["Hero Hunter"] = {
-							["M1"] = "13532562418",
-							["M2"] = "13532600125",
-							["M3"] = "13532604085",
-							["M4"] = "13294471966",
-						},
-						["Destructive Cyborg"] = {
-							["M1"] = "13491635433",
-							["M2"] = "13296577783",
-							["M3"] = "13295919399",
-							["M4"] = "13295936866",
-						},
-						["Deadly Ninja"] = {
-							["M1"] = "13370310513",
-							["M2"] = "13390230973",
-							["M3"] = "13378751717",
-							["M4"] = "13378708199",
-						},
-						["Brutal Demon"] = {
-							["M1"] = "14004222985",
-							["M2"] = "13997092940",
-							["M3"] = "14001963401",
-							["M4"] = "14136436157",
-						},
-						["Blade Master"] = {
-							["M1"] = "15259161390",
-							["M2"] = "15240216931",
-							["M3"] = "15240176873",
-							["M4"] = "15162694192",
-						},
-						["Wild Psychic"] = {
-							["M1"] = "16515503507",
-							["M2"] = "16515520431",
-							["M3"] = "16515448089",
-							["M4"] = "16552234590",
-						},
-						["Martial Artist"] = {
-							["M1"] = "17889458563",
-							["M2"] = "17889461810",
-							["M3"] = "17889471098",
-							["M4"] = "17889290569",
-						},
-						["Tech Prodigy"] = {
-							["M1"] = "123005629431309",
-							["M2"] = "100059874351664",
-							["M3"] = "104895379416342",
-							["M4"] = "134775406437626",
-						},
-					}
-					if clicks[needM1] then
-						needAnim = clicks[needM1]["M"..tostring(animM1)]
-					end
-					if needAnim and needAnim ~= "" then
-						print("click")
-						local rbxAsset = "rbxassetid://"
-						local f = false
-						for _, animTrack in pairs(humanoid:GetPlayingAnimationTracks()) do
-							local needToAnim = true
-							for i, v in pairs(M1sAnimations) do
-								if v == rbxAsset..needAnim then
-									f = true
-								end
-							end
-							if animTrack.Animation.AnimationId ~= rbxAsset..needAnim then
-								animTrack:Stop()
-							else
-								f = true
-							end
-						end
-						if f == false then
-							local anim2 = Instance.new("Animation", localPlayer.Character)
-							anim2.AnimationId = rbxAsset..needAnim
-							local anim3 = humanoid:LoadAnimation(anim2)
-
-							anim3:Play()
-							anim3:AdjustSpeed(1)
-							anim3.TimePosition = 0
-
-							anim3.Ended:Wait()
-							anim2:Destroy()
-						end
-					end
-				end
 			end
 		end
 	end
