@@ -707,6 +707,8 @@ local function setupUI()
 	end
 
 	local function setupTab6()
+		local tpSection = Tab6:CreateSection("Main Teleports")
+		
 		local MapCenter = Tab6:CreateButton({
 			Name = "Map Center",
 			Callback = function()
@@ -741,6 +743,25 @@ local function setupUI()
 			end,
 		})
 		
+		local tp2Section = Tab6:CreateSection("Jail Teleports")
+		
+		local smallJail = Tab6:CreateButton({
+			Name = "Small Jail",
+			Callback = function()
+				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(438, 439, -375)
+			end,
+		})
+		local bigJailBind = Tab6:CreateKeybind({
+			Name = "Small Jail TP Bind",
+			CurrentKeybind = "",
+			HoldToInteract = false,
+			Flag = "SmallJailBind", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Keybind)
+				print(Keybind)
+				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(438, 439, -375)
+			end,
+		})
+		
 		local bigJail = Tab6:CreateButton({
 			Name = "Big Jail",
 			Callback = function()
@@ -757,7 +778,7 @@ local function setupUI()
 				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(284, 439, 467)
 			end,
 		})
-		
+
 		local biggestJail = Tab6:CreateButton({
 			Name = "Biggest Jail",
 			Callback = function()
@@ -774,6 +795,8 @@ local function setupUI()
 				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(378, 439, 457)
 			end,
 		})
+		
+		local tpSection = Tab6:CreateSection("Other Teleports")
 
 		local DeathCounterRoom = Tab6:CreateButton({
 			Name = "Death Counter Room",
