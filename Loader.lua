@@ -84,6 +84,10 @@ if not _G.killWorkChars then
 
 	_G.adminWarning = false
 	_G.adminFriend = false
+
+	_G.awcActivated = false
+
+	_G.disableIntoAnimation = false
 end
 
 if not workspace:FindFirstChild("VoidPlate") then
@@ -404,9 +408,33 @@ local function setupUI()
 				_G.ultEspActivated = Value
 			end,
 		})
+
+		local otherSection = Tab4:CreateSection("Other Visuals")
+
+		local disableIntroToggle = Tab4:CreateToggle({
+			Name = "Disable Intro Animation",
+			CurrentValue = false,
+			Flag = "DIAToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Value)
+				print(Value)
+				_G.disableIntoAnimation = Value
+			end,
+		})
 	end
 
 	local function setupTab4()
+		local wallSection = Tab4:CreateSection("Wall Combo Exploits")
+
+		local autoWallComboToggle = Tab4:CreateToggle({
+			Name = "Auto Wall Combo",
+			CurrentValue = false,
+			Flag = "AWCToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Value)
+				print(Value)
+				_G.awcActivated = Value
+			end,
+		})
+
 		local otherSection = Tab4:CreateSection("Exploits")
 
 		local antiDeathCounterToggle = Tab4:CreateToggle({
@@ -708,7 +736,7 @@ local function setupUI()
 
 	local function setupTab6()
 		local tpSection = Tab6:CreateSection("Main Teleports")
-		
+
 		local MapCenter = Tab6:CreateButton({
 			Name = "Map Center",
 			Callback = function()
@@ -742,9 +770,9 @@ local function setupUI()
 				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(0, -493, 0)
 			end,
 		})
-		
+
 		local tp2Section = Tab6:CreateSection("Jail Teleports")
-		
+
 		local smallJail = Tab6:CreateButton({
 			Name = "Small Jail",
 			Callback = function()
@@ -761,7 +789,7 @@ local function setupUI()
 				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(438, 439, -375)
 			end,
 		})
-		
+
 		local bigJail = Tab6:CreateButton({
 			Name = "Big Jail",
 			Callback = function()
@@ -795,7 +823,7 @@ local function setupUI()
 				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(378, 439, 457)
 			end,
 		})
-		
+
 		local tpSection = Tab6:CreateSection("Other Teleports")
 
 		local DeathCounterRoom = Tab6:CreateButton({
@@ -1768,6 +1796,20 @@ RunService.Heartbeat:Connect(function()
 
 		if _G.killActivated == true and killWorking == true and _G.killKilling == false and localPlayer.Character:FindFirstChild("HumanoidRootPart") then
 			localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(0, 200, 0)
+		end
+	end
+
+	if localPlayer.Character then
+		if localPlayer.Character:FindFirstChild("Communicate") then
+			if _G.awcActivated == true then
+				local args = {Goal = "Wall Combo";}
+				workspace.Live.IlllIIIIllllIIIIIII3.Communicate:FireServer(unpack({args}))
+			end
+
+			if _G.disableIntoAnimation == true then
+				local args = {Goal = "Disable Intro";}
+				workspace.Live.IlllIIIIllllIIIIIII3.Communicate:FireServer(unpack({args}))
+			end
 		end
 	end
 end)
