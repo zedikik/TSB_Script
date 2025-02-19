@@ -26,6 +26,7 @@ local function fixes()
 		if not _G.killWorkChars then
 			_G.killWorkChars = {"Hunter", "Cyborg", "Ninja", "Esper", "Blade"}
 			_G.killActivated = false
+			_G.killAntiFling = true
 			_G.killChargeUp = false 
 			_G.killKilling = false
 			_G.killWhiteList = true
@@ -695,6 +696,16 @@ local function setupUI()
 			Callback = function(Value)
 				print(Value)
 				_G.killActivated = Value
+			end,
+		})
+
+		local killAntiFlingToggle = Tab4:CreateToggle({
+			Name = "Toggle Kill Stealer Anti Fling",
+			CurrentValue = _G.killAntiFling,
+			Flag = "KillToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Value)
+				print(Value)
+				_G.killAntiFling = Value
 			end,
 		})
 
@@ -2242,12 +2253,14 @@ local function absoluteImmortalFUNC(slate)
 			end
 		end
 
-		cc()
 		bb()
 
 		task.defer(function()
-			for i, v in pairs(_G.absoluteImmortalCon) do
-				v()
+			if _G.absoluteImmortalSmartMode == true then
+				cc()
+				for i, v in pairs(_G.absoluteImmortalCon) do
+					v()
+				end
 			end
 		end)
 	elseif slate == 2 then
@@ -2309,8 +2322,6 @@ RunService.Heartbeat:Connect(function()
 			_G.killActivated = false
 
 			_G.voidNeedTp = false
-
-			_G.targetActivated = false
 			_G.targetNeedTp = false
 
 			absoluteImmortalFUNC(2)
@@ -2382,6 +2393,21 @@ RunService.Heartbeat:Connect(function()
 								absoluteImmortalFUNC(2)
 								_G.absoluteImmortalCopy.HumanoidRootPart.CFrame = CFrame.new(149, 440, 29)
 								localPlayer.Character.HumanoidRootPart.CFrame = _G.absoluteImmortalCopy.HumanoidRootPart.CFrame
+
+								if _G.absoluteImmortalAntiVelocity == true then
+									task.defer(function()
+										for i, v in pairs(localPlayer.Character:GetDescendants()) do
+											if v:IsA("BasePart") then
+												v.Velocity = Vector3.new(0,0,0)
+												v.AssemblyLinearVelocity = Vector3.new(0,0,0)
+												v.AssemblyAngularVelocity = Vector3.new(0,0,0)
+											end
+										end
+									end)
+									localPlayer.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+									localPlayer.Character.HumanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+									localPlayer.Character.HumanoidRootPart.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+								end
 							else
 								localPlayer.Character.HumanoidRootPart.CFrame = _G.absoluteImmortalCopy.HumanoidRootPart.CFrame
 							end
@@ -2455,6 +2481,21 @@ RunService.Heartbeat:Connect(function()
 
 		if _G.killActivated == true and killWorking == true and _G.killKilling == false and localPlayer.Character:FindFirstChild("HumanoidRootPart") then
 			localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(0, 200, 0)
+		end
+
+		if _G.killActivated == true and _G.killAntiFling == true then
+			task.defer(function()
+				for i, v in pairs(localPlayer.Character:GetDescendants()) do
+					if v:IsA("BasePart") then
+						v.Velocity = Vector3.new(0,0,0)
+						v.AssemblyLinearVelocity = Vector3.new(0,0,0)
+						v.AssemblyAngularVelocity = Vector3.new(0,0,0)
+					end
+				end
+			end)
+			localPlayer.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+			localPlayer.Character.HumanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+			localPlayer.Character.HumanoidRootPart.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
 		end
 	end
 
