@@ -11,7 +11,7 @@ local playerGui = localPlayer.PlayerGui
 local mouse = localPlayer:GetMouse()
 
 local Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/zedikik/RayField/refs/heads/main/RayField.lua'))() -- https://sirius.menu/rayfield
-if not Rayfield then return end
+if not Rayfield then warn("Rayfield started not correcly, try to reexecute script") return end
 Rayfield:Notify({
 	Title = "Tsb Script",
 	Content = "Loading",
@@ -19,7 +19,6 @@ Rayfield:Notify({
 	Image = 4483362458,
 })
 
-local msgToDebug = {}
 local killWorking = false
 local selectedChar = ""
 
@@ -102,7 +101,6 @@ local function fixes()
 			_G.absoluteImmortalCopySpeedMultipler = 15 -- 1 is default
 			_G.absoluteImmortalAntiVelocity = true -- anti fling after tp to copy
 			_G.absoluteImmortalSmartMode = true -- checking all animation and timings for it, line 131
-			_G.absoluteImmortalDebug = true -- idk whats it
 
 			_G.trashGrabberWorking = false
 			_G.trashGrabberReactionTime = 0.05 -- very low value bad for fps
@@ -670,16 +668,6 @@ local function setupUI()
 				else
 					warn(option)
 				end
-			end,
-		})
-
-		local absoluteImmortalDebugToggle = Tab4:CreateToggle({
-			Name = "Absolute Immortal Debug Toggle",
-			CurrentValue = _G.absoluteImmortalSmartMode,
-			Flag = "absoluteImmortalDebugToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-			Callback = function(Value)
-				print(Value)
-				_G.absoluteImmortalDebug = Value
 			end,
 		})
 
@@ -1427,45 +1415,6 @@ local function getPlayingAnim(animId)
 					end
 				end
 			end
-		end
-	end
-
-	return false
-end
-
-function debugMSG(typeMSG, textMSG)
-	if typeMSG ~= 3 and not _G.absoluteImmortalDebug then return end
-	if not typeMSG then typeMSG = 2 end
-	if type(textMSG) == "table" then
-		for i, v in pairs(textMSG) do
-			debugMSG(typeMSG, v)
-		end
-		return true
-	end
-
-	if msgToDebug[textMSG] then
-		task.delay(math.random(1.5, 5), function()
-			if typeMSG == 1 then
-				print(textMSG)
-				return true
-			elseif typeMSG == 2 then
-				warn(textMSG)
-				return true
-			elseif typeMSG == 3 then
-				error(textMSG)
-				return true
-			end
-		end)
-	else
-		if typeMSG == 1 then
-			print(textMSG)
-			return true
-		elseif typeMSG == 2 then
-			warn(textMSG)
-			return true
-		elseif typeMSG == 3 then
-			error(textMSG)
-			return true
 		end
 	end
 
@@ -2449,7 +2398,7 @@ local function absoluteImmortalFUNC(slate)
 			camera.CameraSubject = localPlayer.Character:WaitForChild("Humanoid")
 		end
 	else
-		debugMSG(2, {"slate =", slate})
+		warn("slate =", slate)
 	end
 end
 
@@ -2664,7 +2613,7 @@ RunService.Heartbeat:Connect(function(delta)
 								_G.absoluteImmortalCopy.HumanoidRootPart.RotVelocity = Vector3.new(0, 0, 0)
 							end
 						else
-							debugMSG(2, "localPlayer.Character.HumanoidRootPart is not exists")
+							warn("localPlayer.Character.HumanoidRootPart is not exists")
 						end
 					else
 						if _G.absoluteImmortalCopy:FindFirstChild("HumanoidRootPart") and localPlayer.Character:FindFirstChild("HumanoidRootPart") then
@@ -2700,8 +2649,8 @@ RunService.Heartbeat:Connect(function(delta)
 				else
 					_G.absoluteImmortalLoaded = false
 					task.defer(absoluteImmortalFUNC)
-					debugMSG(1, "_G.absoluteImmortalCopy = ".._G.absoluteImmortalCopy)
-					debugMSG(2, {"_G.absoluteImmortalCopy == nil", "or started not correctly"})
+					warn("_G.absoluteImmortalCopy =", _G.absoluteImmortalCopy)
+					warn("_G.absoluteImmortalCopy == nil", "or started not correctly")
 				end
 			end)
 
