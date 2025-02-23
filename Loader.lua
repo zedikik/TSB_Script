@@ -185,6 +185,7 @@ local function setupUI()
 		})
 
 		local debugSection = Tab:CreateSection("Debug functions")
+		local trSection = Tab:CreateSection("In testing Functions")
 
 		local trashCanGrabberBind = Tab:CreateKeybind({
 			Name = "Trashcan Grabber",
@@ -196,6 +197,95 @@ local function setupUI()
 				trashGrabberFUNC()
 			end,
 		})
+
+		local trashCanGrabberReactionTimeSlider = Tab:CreateSlider({
+			Name = "Trashcan Grabber Reaction Time (low value is bad for fps)",
+			Range = {.01, 5},
+			Increment = 0.01,
+			Suffix = "Second",
+			CurrentValue = _G.trashGrabberReactionTime,
+			Flag = "trashCanGrabberSlider", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Value)
+				print(Value)
+				_G.trashGrabberReactionTime = Value
+			end,
+		})
+
+		local trashCanGrabberSearchModeDropdown = Tab:CreateDropdown({
+			Name = "TrashCan Grabber Search Mode",
+			Options = {"Nearest (Magnitude)", "Raycast (First on way)"},
+			CurrentOption = {""},
+			MultipleOptions = false,
+			Flag = "trashCanGrabberSearchModeDropdown", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Opt)
+				local option = nil
+				for i, v in Opt do
+					if not option or option == nil then
+						option = v
+					end
+				end
+				if option and option ~= nil then
+					if string.match(option, "Nearest") then
+						_G.trashGrabberSearchMode = 1
+					else
+						_G.trashGrabberSearchMode = 2
+					end
+				else
+					warn(option)
+				end
+			end,
+		})
+
+		local trashCanGrabberModeDropdown = Tab:CreateDropdown({
+			Name = "TrashCan Grabber Grab Mode",
+			Options = {"Basic (TP character)", "Smart (Use Absolute Immortal)"},
+			CurrentOption = {""},
+			MultipleOptions = false,
+			Flag = "trashCanGrabberModeDropdown", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Opt)
+				local option = nil
+				for i, v in Opt do
+					if not option or option == nil then
+						option = v
+					end
+				end
+				if option and option ~= nil then
+					if string.match(option, "Basic") then
+						_G.trashGrabberMode = 1
+					else
+						_G.trashGrabberMode = 2
+					end
+				else
+					warn(option)
+				end
+			end,
+		})
+
+		local TrashcanGrabberSafeModeToggle = Tab:CreateToggle({
+			Name = "Trashcan Grabber Safe Mode",
+			CurrentValue = _G.trashGrabberSafeMode,
+			Flag = "TrashcanGrabberSafeModeToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Value)
+				print(Value)
+				_G.trashGrabberSafeMode = Value
+			end,
+		})
+
+		local TrashcanGrabberSafeModeDistanceSlider = Tab:CreateSlider({
+			Name = "Trashcan Grabber Safe Mode Distance",
+			Range = {1, 10000},
+			Increment = 1,
+			Suffix = "Studs",
+			CurrentValue = _G.trashGrabberSafeModeDistance,
+			Flag = "trashCanGrabberSlider", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Value)
+				print(Value)
+				_G.trashGrabberSafeModeDistance = Value
+			end,
+		})
+
+
+		local otherSection = Tab:CreateSection("Other functions")
 
 		local manualVoidBind = Tab:CreateKeybind({
 			Name = "Manual void tp",
@@ -2381,7 +2471,7 @@ function trashGrabberFUNC()
 
 			if _G.trashGrabberSafeMode == true then
 				for i, v in pairs(Players:GetPlayers()) do
-					if v:IsA("Player") then
+					if v:IsA("Player") and v ~= localPlayer then
 						if v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
 							if v.Character.HumanoidRootPart and root.Position then
 								if (v.Character.HumanoidRootPart.Position - root.Position).Magnitude < (_G.trashGrabberSafeModeDistance or 50) then
