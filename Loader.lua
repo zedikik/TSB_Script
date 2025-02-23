@@ -3,10 +3,12 @@ local TeleportService = game:GetService("TeleportService")
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 
+local trashCanFolder = workspace.Map.Trash
+local camera = workspace.CurrentCamera
+
 local localPlayer = Players.LocalPlayer
 local playerGui = localPlayer.PlayerGui
 local mouse = localPlayer:GetMouse()
-local camera = workspace.CurrentCamera
 
 local Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/zedikik/RayField/refs/heads/main/RayField.lua'))() -- https://sirius.menu/rayfield
 if not Rayfield then return end
@@ -56,13 +58,14 @@ local function fixes()
 			_G.deathCounterEsp = true
 
 			_G.targetActivated = false
+			_G.targetSafeActivated = true
 			_G.targetAutoAfk = false
+			_G.targetPredict = false
 			_G.targetNeedTp = false
 			_G.targetTarget = nil
 			_G.targetQuotes = 1 -- 1 is basic target, 2 is smart target (tp only if has skills)
-			_G.targetSafeActivated = true
 			_G.targetSafeProp = 30
-			_G.targetSafeQuotes = 2 -- 1 is basic (15hp prop void); 2 is absolute safe (15hp prop void * CFrame.Angles(0, 90, 0)
+			_G.targetSafeQuotes = 2 -- 1 is basic (15hp prop void); 2 is absolute safe (15hp prop void * CFrame.Angles(-89.5, 0,0)
 
 			_G.autoGetIceBoss = false
 
@@ -94,11 +97,19 @@ local function fixes()
 			_G.absoluteImmortalCopy = nil
 			_G.absoluteImmortalNeedTP = true
 			_G.absoluteImmortalReactionTime = 1 -- 0.1 for good fps
-			_G.absoluteImmortalTPQuotes = 0 -- 0 is default (CFrame.new(100000000, 100000000, 100000000))
+			_G.absoluteImmortalTPQuotes = 0 -- 0 is default (CFrame.new(100000000, 100000000, 100000000)), 2 is custom
+			_G.absoluteImmortalCustomTP = CFrame.new(0,0,0) -- custom tp cframe
 			_G.absoluteImmortalCopySpeedMultipler = 15 -- 1 is default
 			_G.absoluteImmortalAntiVelocity = true -- anti fling after tp to copy
 			_G.absoluteImmortalSmartMode = true -- checking all animation and timings for it, line 131
 			_G.absoluteImmortalDebug = true -- idk whats it
+
+			_G.trashGrabberWorking = false
+			_G.trashGrabberReactionTime = 0.05 -- very low value bad for fps
+			_G.trashGrabberSearchMode = 1 -- 1 is nearest(magnitude), 2 is raycast
+			_G.trashGrabberMode = 1 -- 1 is basic(tp char), 2 is absolute Immortal
+			_G.trashGrabberSafeMode = true -- cancel teleport if near players
+			_G.trashGrabberSafeModeDistance = 50 -- safe mode distance to check
 		end
 	end)
 end
@@ -174,6 +185,17 @@ local function setupUI()
 		})
 
 		local debugSection = Tab:CreateSection("Debug functions")
+
+		local trashCanGrabberBind = Tab:CreateKeybind({
+			Name = "Trashcan Grabber",
+			CurrentKeybind = "T",
+			HoldToInteract = false,
+			Flag = "trashCanGrabberBind", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Keybind)
+				print(Keybind)
+				trashGrabberFUNC()
+			end,
+		})
 
 		local manualVoidBind = Tab:CreateKeybind({
 			Name = "Manual void tp",
@@ -605,6 +627,16 @@ local function setupUI()
 					print("nil target")
 					_G.targetTarget = ""
 				end
+			end,
+		})
+
+		local targetPredictToggle = Tab4:CreateToggle({
+			Name = "Target Predict Toggle",
+			CurrentValue = _G.targetActivated,
+			Flag = "targetPredictToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Value)
+				print(Value)
+				_G.targetPredict = Value
 			end,
 		})
 
@@ -2201,10 +2233,15 @@ local function absoluteImmortalFUNC(slate)
 		local function bb()
 			if not _G.absoluteImmortalCopy then
 				task.defer(function()
-					local ccoppy = localPlayer.Character:Clone()
-					ccoppy.Name = localPlayer.Character.Name
+					local ccoppy = nil
+					if localPlayer.Character then
+						ccoppy = localPlayer.Character:Clone()
+					else
+						ccoppy = workspace.Live[localPlayer.Name]
+					end
+
 					ccoppy.Archivable = false
-					ccoppy.Parent = workspace
+					ccoppy.Parent = workspace.Camera
 					_G.absoluteImmortalCopy = ccoppy
 
 					if _G.absoluteImmortalCon2 then _G.absoluteImmortalCon2:Disconnect() end
@@ -2234,10 +2271,45 @@ local function absoluteImmortalFUNC(slate)
 
 						_G.absoluteImmortalCopy.Humanoid:ChangeState(char.Humanoid:GetState())
 
-						if _G.absoluteImmortalCopy:FindFirstChild("Humanoid") then
-							_G.absoluteImmortalCopy.Humanoid:Move(localPlayer.Character.Humanoid.MoveDirection)
+						if char:FindFirstChild("RagdollSim") == nil then
+							if _G.absoluteImmortalCopy:FindFirstChild("Humanoid") then
+								_G.absoluteImmortalCopy.Humanoid:Move(localPlayer.Character.Humanoid.MoveDirection)
+							end
+							_G.absoluteImmortalCopy:TranslateBy(_G.absoluteImmortalCopy.Humanoid.MoveDirection * delta * (_G.absoluteImmortalCopySpeedMultipler or 1))
 						end
-						_G.absoluteImmortalCopy:TranslateBy(_G.absoluteImmortalCopy.Humanoid.MoveDirection * delta * (_G.absoluteImmortalCopySpeedMultipler or 1))
+
+						if _G.absoluteImmortalAntiVelocity == true then
+							task.defer(function()
+								for i, v in pairs(localPlayer.Character:GetDescendants()) do
+									if v:IsA("BasePart") then
+										v.Velocity = Vector3.new(0,0,0)
+										v.AssemblyLinearVelocity = Vector3.new(0,0,0)
+										v.AssemblyAngularVelocity = Vector3.new(0,0,0)
+										v.RotVelocity = Vector3.new(0, 0, 0)
+									end
+								end
+							end)
+							task.defer(function()
+								for i, v in pairs(_G.absoluteImmortalCopy:GetDescendants()) do
+									if v:IsA("BasePart") then
+										v.Velocity = Vector3.new(0,0,0)
+										v.AssemblyLinearVelocity = Vector3.new(0,0,0)
+										v.AssemblyAngularVelocity = Vector3.new(0,0,0)
+										v.RotVelocity = Vector3.new(0, 0, 0)
+									end
+								end
+							end)
+
+							localPlayer.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+							localPlayer.Character.HumanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+							localPlayer.Character.HumanoidRootPart.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+							localPlayer.Character.RotVelocity = Vector3.new(0, 0, 0)
+
+							_G.absoluteImmortalCopy.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+							_G.absoluteImmortalCopy.HumanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+							_G.absoluteImmortalCopy.HumanoidRootPart.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+							_G.absoluteImmortalCopy.RotVelocity = Vector3.new(0, 0, 0)
+						end
 					end)
 
 					task.defer(function()
@@ -2291,8 +2363,99 @@ local function absoluteImmortalFUNC(slate)
 	end
 end
 
+function trashGrabberFUNC()
+	if not localPlayer.Character then return end
+	if _G.trashGrabberWorking == true then return end
+	_G.trashGrabberWorking = true
 
-RunService.Heartbeat:Connect(function()
+	local nearestTrashCan 
+
+	if _G.trashGrabberSearchMode == 1 then
+		local nearestDistance = math.huge
+
+		for i, v in pairs(trashCanFolder:GetChildren()) do
+			local root = v:WaitForChild("Trashcan")
+			local distance = (localPlayer.Character.HumanoidRootPart.Position - root.Position).Magnitude
+
+			local can = true
+
+			if _G.trashGrabberSafeMode == true then
+				for i, v in pairs(Players:GetPlayers()) do
+					if v:IsA("Player") then
+						if v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+							if v.Character.HumanoidRootPart and root.Position then
+								if (v.Character.HumanoidRootPart.Position - root.Position).Magnitude < (_G.trashGrabberSafeModeDistance or 50) then
+									can = false
+								end
+							end
+						end
+					end
+				end
+			else
+				can = true
+			end
+			distance = math.floor(distance)
+
+			if root.Transparency ~= 1 then
+				if (can and can == true) and distance < nearestDistance then
+					nearestTrashCan = v
+					nearestDistance = distance
+				else
+					warn("can:", can, "distance:", distance < nearestDistance, "distance:", distance, "nearestdistance:", nearestDistance)
+				end
+			else
+				warn("transparency 1")
+			end
+		end
+
+	elseif _G.trashGrabberSearchMode == 2 then
+		-- raycast
+
+	else
+		warn(_G.trashGrabberSearchMode)
+	end
+
+	if not nearestTrashCan then warn("nearest trash can not found"); _G.trashGrabberWorking = false return end
+
+
+	local oldCFrame = localPlayer.Character.HumanoidRootPart.CFrame
+
+	if _G.trashGrabberMode == 1 then
+		print(1)
+		local cf = nearestTrashCan:WaitForChild("Trashcan").CFrame
+		repeat
+			task.wait(_G.trashGrabberReactionTime or 0.05)
+			localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(Vector3.new(cf.Position.X, cf.Position.Y, cf.Position.Z + 5), Vector3.new(cf.Position.X, localPlayer.Character.HumanoidRootPart.Position.Y, cf.Position.Z))
+		until localPlayer.Character:GetAttribute("HasTrashcan") and (localPlayer.Character:GetAttribute("HasTrashcan") ~= false and localPlayer.Character:GetAttribute("HasTrashcan") ~= nil)
+		localPlayer.Character.HumanoidRootPart.CFrame = oldCFrame
+
+	elseif _G.trashGrabberMode == 2 then
+		warn(2)
+		local cf = nearestTrashCan:WaitForChild("Trashcan").CFrame
+
+		repeat
+			task.wait(_G.trashGrabberReactionTime or 0.05)
+			_G.absoluteImmortal = true
+			_G.absoluteImmortalTPQuotes = 1
+			_G.absoluteImmortalCustomTP = cf
+			absoluteImmortalFUNC()
+		until localPlayer.Character:GetAttribute("HasTrashcan") and (localPlayer.Character:GetAttribute("HasTrashcan") ~= false and localPlayer.Character:GetAttribute("HasTrashcan") ~= nil)
+
+		_G.absoluteImmortal = false
+		_G.absoluteImmortalTPQuotes = 0
+		_G.absoluteImmortalCustomTP = CFrame.new(0,0,0)
+		absoluteImmortalFUNC()
+
+		localPlayer.Character.HumanoidRootPart.CFrame = oldCFrame
+	else
+		warn(_G.trashGrabberMode)
+	end
+
+	_G.trashGrabberWorking = false
+end
+
+
+RunService.Heartbeat:Connect(function(delta)
 	if localPlayer.Character then
 		if _G.adcActivated == true then
 			if _G.isDeath == true then
@@ -2305,7 +2468,7 @@ RunService.Heartbeat:Connect(function()
 		end
 
 		if _G.adcNeedTp == true then
-			localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -494, 1) * CFrame.Angles(90, 0, 0)
+			localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -494, 1) * CFrame.Angles(-89.5, 0,0)
 
 			_G.killActivated = false
 
@@ -2340,13 +2503,18 @@ RunService.Heartbeat:Connect(function()
 				if _G.targetTarget ~= "" and _G.targetTarget.Character then
 					if _G.targetSafeActivated == true then
 						if localPlayer.Character.Humanoid.Health > _G.targetSafeProp then
-							local cf = _G.targetTarget.Character.HumanoidRootPart.CFrame
-							localPlayer.Character.HumanoidRootPart.CFrame = cf - (cf.LookVector * 3.5) + _G.targetTarget.Character.Humanoid.MoveDirection
+							if _G.targetPredict == true then
+								local cf = _G.targetTarget.Character.HumanoidRootPart.CFrame
+								localPlayer.Character.HumanoidRootPart.CFrame = (_G.targetTarget.Character.Humanoid.MoveDirection * delta * (_G.targetTarget.Character.Humanoid.WalkSpeed / 5 or 1))
+							else
+								local cf = _G.targetTarget.Character.HumanoidRootPart.CFrame
+								localPlayer.Character.HumanoidRootPart.CFrame = cf - (cf.LookVector * 3.5) + _G.targetTarget.Character.Humanoid.MoveDirection
+							end
 						else
 							if _G.targetSafeQuotes == 1 then
 								localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -490, 1)
 							else
-								localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -494, 1) * CFrame.Angles(75, 0, 0)
+								localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -494, 1) * CFrame.Angles(-89.5, 0,0)
 							end
 						end
 					else
@@ -2364,12 +2532,15 @@ RunService.Heartbeat:Connect(function()
 						if localPlayer.Character:FindFirstChild("HumanoidRootPart") then
 							local tpCFrame
 							if _G.absoluteImmortalTPQuotes == 0 then
-								local ranX = math.random(90000000, 100000000)
-								local ranY = math.random(90000000, 100000000)
-								local ranZ = math.random(90000000, 100000000)
-								tpCFrame = CFrame.new(ranX,ranY,ranZ)
+								tpCFrame = CFrame.new(math.random(90000000, 100000000),math.random(90000000, 100000000),math.random(90000000, 100000000))
+							elseif _G.absoluteImmortalTPQuotes == 1 then
+								local tpCFrame1 = CFrame.new(math.random(90000000, 100000000),math.random(90000000, 100000000),math.random(90000000, 100000000))
+								tpCFrame = (_G.absoluteImmortalCustomTP or tpCFrame1)
+							else
+								warn(_G.absoluteImmortalTPQuotes)
 							end
 							localPlayer.Character.HumanoidRootPart.CFrame = tpCFrame or _G.absoluteImmortalCopy.HumanoidRootPart.CFrame
+
 							if _G.absoluteImmortalAntiVelocity == true then
 								task.defer(function()
 									for i, v in pairs(localPlayer.Character:GetDescendants()) do
@@ -2377,12 +2548,30 @@ RunService.Heartbeat:Connect(function()
 											v.Velocity = Vector3.new(0,0,0)
 											v.AssemblyLinearVelocity = Vector3.new(0,0,0)
 											v.AssemblyAngularVelocity = Vector3.new(0,0,0)
+											v.RotVelocity = Vector3.new(0, 0, 0)
 										end
 									end
 								end)
+								task.defer(function()
+									for i, v in pairs(_G.absoluteImmortalCopy:GetDescendants()) do
+										if v:IsA("BasePart") then
+											v.Velocity = Vector3.new(0,0,0)
+											v.AssemblyLinearVelocity = Vector3.new(0,0,0)
+											v.AssemblyAngularVelocity = Vector3.new(0,0,0)
+											v.RotVelocity = Vector3.new(0, 0, 0)
+										end
+									end
+								end)
+
 								localPlayer.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
 								localPlayer.Character.HumanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
 								localPlayer.Character.HumanoidRootPart.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+								localPlayer.Character.HumanoidRootPart.RotVelocity = Vector3.new(0, 0, 0)
+
+								_G.absoluteImmortalCopy.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+								_G.absoluteImmortalCopy.HumanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+								_G.absoluteImmortalCopy.HumanoidRootPart.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+								_G.absoluteImmortalCopy.HumanoidRootPart.RotVelocity = Vector3.new(0, 0, 0)
 							end
 						else
 							debugMSG(2, "localPlayer.Character.HumanoidRootPart is not exists")
@@ -2407,6 +2596,7 @@ RunService.Heartbeat:Connect(function()
 									localPlayer.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
 									localPlayer.Character.HumanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
 									localPlayer.Character.HumanoidRootPart.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+									localPlayer.Character.HumanoidRootPart.RotVelocity = Vector3.new(0, 0, 0)
 								end
 							else
 								localPlayer.Character.HumanoidRootPart.CFrame = _G.absoluteImmortalCopy.HumanoidRootPart.CFrame
@@ -2530,14 +2720,8 @@ local function onPlrAdded(plr)
 		if not plr:IsFriendsWith(localPlayer.UserId) then
 			plr.CharacterAdded:Connect(onCharAdded)
 			if plr.Character then
-				task.defer(function()
-					onCharAdded(plr.Character)
-				end)
-				task.defer(function()
-					hlChar(plr.Character)
-				end)
-				--[[onCharAdded(plr.Character)
-				hlChar(plr.Character)]]
+				task.defer(function()onCharAdded(plr.Character);end)
+				task.defer(function()hlChar(plr.Character);end)
 			end
 		end
 	end
@@ -2591,44 +2775,14 @@ localPlayer.CharacterAdded:Connect(function(character)
 	end
 end)
 
-while task.wait(5) do
-	if _G.adminWarning == true then
-		for i , v in pairs(Players:GetPlayers()) do
-			checkForAdmins(v)
+task.defer(function()
+	while task.wait(5) do
+		if _G.adminWarning == true then
+			for i , v in pairs(Players:GetPlayers()) do
+				checkForAdmins(v)
+			end
 		end
 	end
-end
-
-task.defer(function()
-	local v1 = {}
-	local v2 = {
-		["Text"] = "The Skuff script has ",
-		["Color"] = ColorSequence.new({ ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 0, 0)), ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 17, 17)), ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255)) }),
-		["TextStrokeColor"] = Color3.new(0, 0, 0),
-		["Bold"] = false,
-		["Italic"] = false,
-		["Shake"] = {
-			["Enabled"] = false,
-			["Intensity"] = 1,
-			["Lifetime"] = 2
-		},
-		["TypeSpeed"] = 0.03
-	}
-	local v3 = {
-		["Text"] = "BEEN LOADED",
-		["Color"] = ColorSequence.new({ ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 0, 0)), ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 17, 17)) }),
-		["TextStrokeColor"] = Color3.new(0, 0, 0),
-		["Bold"] = true,
-		["Italic"] = true,
-		["Shake"] = {
-			["Enabled"] = true,
-			["Intensity"] = 5,
-			["Lifetime"] = 1
-		},
-		["TypeSpeed"] = 0.04
-	}
-	v1 = {v2, v3}
-	require(game:GetService("ReplicatedStorage"):WaitForChild("Resources"):WaitForChild("UFW"):WaitForChild("TekrinnDialogue")).Speak(nil, v1)
 end)
 
 Rayfield:Notify({
@@ -2636,4 +2790,4 @@ Rayfield:Notify({
 	Content = "Loaded",
 	Duration = 6.5,
 	Image = 4483362458,
-})
+})	
