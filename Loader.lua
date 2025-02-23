@@ -107,7 +107,7 @@ local function fixes()
 			_G.trashGrabberWorking = false
 			_G.trashGrabberReactionTime = 0.05 -- very low value bad for fps
 			_G.trashGrabberSearchMode = 1 -- 1 is nearest(magnitude), 2 is raycast
-			_G.trashGrabberMode = 1 -- 1 is basic(tp char), 2 is absolute Immortal
+			_G.trashGrabberMode = 2 -- 1 is basic(tp char), 2 is absolute Immortal
 			_G.trashGrabberSafeMode = true -- cancel teleport if near players
 			_G.trashGrabberSafeModeDistance = 50 -- safe mode distance to check
 		end
@@ -214,7 +214,7 @@ local function setupUI()
 		local trashCanGrabberSearchModeDropdown = Tab:CreateDropdown({
 			Name = "TrashCan Grabber Search Mode",
 			Options = {"Nearest (Magnitude)", "Raycast (First on way)"},
-			CurrentOption = {""},
+			CurrentOption = {"Nearest (Magnitude)"},
 			MultipleOptions = false,
 			Flag = "trashCanGrabberSearchModeDropdown", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
 			Callback = function(Opt)
@@ -239,7 +239,7 @@ local function setupUI()
 		local trashCanGrabberModeDropdown = Tab:CreateDropdown({
 			Name = "TrashCan Grabber Grab Mode",
 			Options = {"Basic (TP character)", "Smart (Use Absolute Immortal)"},
-			CurrentOption = {""},
+			CurrentOption = {"Smart (Use Absolute Immortal)"},
 			MultipleOptions = false,
 			Flag = "trashCanGrabberModeDropdown", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
 			Callback = function(Opt)
