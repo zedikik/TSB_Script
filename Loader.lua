@@ -37,6 +37,7 @@ local function fixes()
 
 			_G.adcActivated = false -- anti death counter
 			_G.adcNeedTp = false
+			_G.adcAntiFling = true 
 			_G.adcNeedCustomTp = false
 			_G.adcCusomCFrame = CFrame.new(-66, 30, 20356) 
 			_G.adcWorking = false
@@ -104,7 +105,7 @@ local function fixes()
 
 			_G.trashGrabberWorking = false
 			_G.trashGrabberReactionTime = 0.05 -- very low value bad for fps
-			_G.trashGrabberSearchMode = 1 -- 1 is nearest(magnitude), 2 is raycast
+			_G.trashGrabberSearchMode = 1 -- 1 is nearest(magnitude), 2 is longest(magnitude), 3  is raycast
 			_G.trashGrabberMode = 2 -- 1 is basic(tp char), 2 is absolute Immortal
 			_G.trashGrabberSafeMode = true -- cancel teleport if near players
 			_G.trashGrabberSafeModeDistance = 50 -- safe mode distance to check
@@ -211,7 +212,7 @@ local function setupUI()
 
 		local trashCanGrabberSearchModeDropdown = Tab:CreateDropdown({
 			Name = "TrashCan Grabber Search Mode",
-			Options = {"Nearest (Magnitude)", "Raycast (First on way)"},
+			Options = {"Nearest (Magnitude)", "Longest (Magnitude)", "Raycast (First on way)"},
 			CurrentOption = {"Nearest (Magnitude)"},
 			MultipleOptions = false,
 			Flag = "trashCanGrabberSearchModeDropdown", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
@@ -225,8 +226,10 @@ local function setupUI()
 				if option and option ~= nil then
 					if string.match(option, "Nearest") then
 						_G.trashGrabberSearchMode = 1
-					else
+					elseif string.match(option, "Longest") then
 						_G.trashGrabberSearchMode = 2
+					else
+						_G.trashGrabberSearchMode = 3
 					end
 				else
 					warn(option)
@@ -472,6 +475,16 @@ local function setupUI()
 			Callback = function(Value)
 				print(Value)
 				_G.adcActivated = Value
+			end,
+		})
+		
+		local antiDeathCounterAntiFlingToggle = Tab4:CreateToggle({
+			Name = "Anti Fling Toggle (Anti Death Counter)",
+			CurrentValue = _G.adcActivated,
+			Flag = "ADCAFToggle", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+			Callback = function(Value)
+				print(Value)
+				_G.adcAntiFling = Value 
 			end,
 		})
 
@@ -1913,6 +1926,24 @@ local function antiDeathCounter()
 			localPlayer.Character.Humanoid.AutoRotate = true
 		end
 		camera.CameraType = Enum.CameraType.Custom
+
+		if _G.adcAntiFling == true then
+			task.defer(function()
+				for i, v in pairs(localPlayer.Character:GetDescendants()) do
+					if v:IsA("BasePart") then
+						v.Velocity = Vector3.new(0,0,0)
+						v.AssemblyLinearVelocity = Vector3.new(0,0,0)
+						v.AssemblyAngularVelocity = Vector3.new(0,0,0)
+						v.RotVelocity = Vector3.new(0, 0, 0)
+					end
+				end
+			end)
+
+			localPlayer.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+			localPlayer.Character.HumanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+			localPlayer.Character.HumanoidRootPart.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+			localPlayer.Character.HumanoidRootPart.RotVelocity = Vector3.new(0, 0, 0)
+		end
 	else
 		repeat
 			_G.adcNeedCustomTp = true
@@ -2235,14 +2266,16 @@ local function absoluteImmortalFUNC(slate)
 			local function aa()
 				local func = function()
 					localPlayer.Character:GetAttributeChangedSignal("Combo"):Connect(function()
-						_G.absoluteImmortalNeedTP = false
-						local v1 = localPlayer.Character:GetAttribute("Combo")
-						task.defer(function()
-							repeat
-								task.wait(_G.absoluteImmortalReactionTime or 0.05)
-							until localPlayer.Character:GetAttribute("Combo") ~= v1
-							_G.absoluteImmortalNeedTP = true
-						end)
+						if _G.absoluteImmortalSmartMode == true then
+							_G.absoluteImmortalNeedTP = false
+							local v1 = localPlayer.Character:GetAttribute("Combo")
+							task.defer(function()
+								repeat
+									task.wait(_G.absoluteImmortalReactionTime or 0.05)
+								until localPlayer.Character:GetAttribute("Combo") ~= v1
+								_G.absoluteImmortalNeedTP = true
+							end)
+						end
 					end)
 				end
 
@@ -2250,13 +2283,15 @@ local function absoluteImmortalFUNC(slate)
 					for i, v in pairs(playerGui.Hotbar.Backpack.Hotbar:GetChildren()) do
 						if v:IsA("TextButton") then
 							if not v:FindFirstChild("Cooldown") then
-								task.defer(function()
-									repeat
-										task.wait(_G.absoluteImmortalReactionTime or 0.05)
-									until (v and v:FindFirstChild("Cooldown"))
-									_G.absoluteImmortalNeedTP = false
-									task.wait()
-								end)
+								if _G.absoluteImmortalSmartMode == true then
+									task.defer(function()
+										repeat
+											task.wait(_G.absoluteImmortalReactionTime or 0.05)
+										until (v and v:FindFirstChild("Cooldown"))
+										_G.absoluteImmortalNeedTP = false
+										task.wait()
+									end)
+								end
 							end
 						end
 					end
@@ -2367,11 +2402,9 @@ local function absoluteImmortalFUNC(slate)
 		bb()
 
 		task.defer(function()
-			if _G.absoluteImmortalSmartMode == true then
-				cc()
-				for i, v in pairs(_G.absoluteImmortalCon) do
-					v()
-				end
+			cc()
+			for i, v in pairs(_G.absoluteImmortalCon) do
+				v()
 			end
 		end)
 	elseif slate == 2 then
@@ -2448,9 +2481,46 @@ function trashGrabberFUNC()
 		end
 
 	elseif _G.trashGrabberSearchMode == 2 then
-		-- raycast
+		local nearestDistance = 0
 
-	else
+		for i, v in pairs(trashCanFolder:GetChildren()) do
+			local root = v:WaitForChild("Trashcan")
+			local distance = (localPlayer.Character.HumanoidRootPart.Position - root.Position).Magnitude
+
+			local can = true
+
+			if _G.trashGrabberSafeMode == true then
+				for i, v in pairs(Players:GetPlayers()) do
+					if v:IsA("Player") and v ~= localPlayer then
+						if v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+							if v.Character.HumanoidRootPart and root.Position then
+								if (v.Character.HumanoidRootPart.Position - root.Position).Magnitude < (_G.trashGrabberSafeModeDistance or 50) then
+									can = false
+								end
+							end
+						end
+					end
+				end
+			else
+				can = true
+			end
+			distance = math.floor(distance)
+
+			if root.Transparency ~= 1 and root.CanCollide ~= false then
+				if (can and can == true) and distance < nearestDistance then
+					nearestTrashCan = v
+					nearestDistance = distance
+				else
+					warn("can:", can, "distance:", distance < nearestDistance, "distance:", distance, "nearestdistance:", nearestDistance)
+				end
+			else
+				warn("transparency:", root.Transparency ~= 1, "Calcollide:", root.CanCollide)
+			end
+		end
+
+	elseif _G.trashGrabberSearchMode == 3 then
+		-- raycast
+	else	
 		warn(_G.trashGrabberSearchMode)
 	end
 
@@ -2477,12 +2547,14 @@ function trashGrabberFUNC()
 			_G.absoluteImmortal = true
 			_G.absoluteImmortalTPQuotes = 1
 			_G.absoluteImmortalCustomTP = cf
+			_G.absoluteImmortalSmartMode = false
 			absoluteImmortalFUNC()
 		until localPlayer.Character:GetAttribute("HasTrashcan") and (localPlayer.Character:GetAttribute("HasTrashcan") ~= false and localPlayer.Character:GetAttribute("HasTrashcan") ~= nil)
 
 		_G.absoluteImmortal = false
 		_G.absoluteImmortalTPQuotes = 0
 		_G.absoluteImmortalCustomTP = CFrame.new(0,0,0)
+		_G.absoluteImmortalSmartMode = false
 		absoluteImmortalFUNC()
 
 		localPlayer.Character.HumanoidRootPart.CFrame = oldCFrame
