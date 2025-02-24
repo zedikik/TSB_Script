@@ -2507,7 +2507,7 @@ RunService.Heartbeat:Connect(function(delta)
 		end
 
 		if _G.adcNeedTp == true then
-			localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -494, 1) * CFrame.Angles(-89.5, 0,0)
+			localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -494, 1) * CFrame.Angles(89.5, 0,0)
 
 			_G.killActivated = false
 
@@ -2553,7 +2553,7 @@ RunService.Heartbeat:Connect(function(delta)
 							if _G.targetSafeQuotes == 1 then
 								localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -490, 1)
 							else
-								localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -494, 1) * CFrame.Angles(-89.5, 0,0)
+								localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(1, -494, 1) * CFrame.Angles(89.5, 0,0)
 							end
 						end
 					else
