@@ -2435,7 +2435,7 @@ function trashGrabberFUNC()
 			end
 			distance = math.floor(distance)
 
-			if root.Transparency ~= 1 then
+			if root.Transparency ~= 1 and root.CanCollide ~= false then
 				if (can and can == true) and distance < nearestDistance then
 					nearestTrashCan = v
 					nearestDistance = distance
@@ -2443,7 +2443,7 @@ function trashGrabberFUNC()
 					warn("can:", can, "distance:", distance < nearestDistance, "distance:", distance, "nearestdistance:", nearestDistance)
 				end
 			else
-				warn("transparency 1")
+				warn("transparency:", root.Transparency ~= 1, "Calcollide:", root.CanCollide)
 			end
 		end
 
